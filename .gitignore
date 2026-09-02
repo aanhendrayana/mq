@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# .env.example tidak memuat rahasia dan justru harus ikut ter-commit,
+# karena itulah acuan pengembang baru saat menyiapkan .env.local.
+!.env.example
 
 # vercel
 .vercel
