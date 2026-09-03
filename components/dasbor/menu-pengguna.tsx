@@ -54,10 +54,10 @@ export function MenuPengguna({
               {avatar}
               {/* Nama dipotong: gelar lengkap seperti "S.Q., Hafidzoh" bisa
                   sangat panjang dan akan mendorong navigasi keluar layar. */}
-              <span className="hidden max-w-40 truncate text-sm font-medium lg:inline">
+              <span className="hidden max-w-28 truncate text-sm font-medium sm:inline lg:max-w-44">
                 {nama}
               </span>
-              <ChevronDown className="hidden size-3.5 text-muted-foreground lg:inline" />
+              <ChevronDown className="hidden size-3.5 text-muted-foreground sm:inline" />
               <span className="sr-only">Menu akun</span>
             </Button>
           ) : (

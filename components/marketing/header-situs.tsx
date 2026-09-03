@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import { Logo } from "@/components/marketing/logo";
 import { MenuPengguna } from "@/components/dasbor/menu-pengguna";
+import { TombolKeluar } from "@/components/dasbor/tombol-keluar";
 import { keluarAction } from "@/app/(auth)/actions";
 import { penggunaSekarang } from "@/lib/auth";
 import { BERANDA_PERAN } from "@/lib/konstanta";
@@ -60,6 +61,7 @@ export async function HeaderSitus() {
               {/* Nama pengguna & tombol keluar: tanpa ini, pengunjung yang sudah
                   masuk tidak punya cara keluar dari halaman publik. */}
               <MenuPengguna pengguna={pengguna} tampilkanNama />
+              <TombolKeluar />
             </>
           ) : (
             <>

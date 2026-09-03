@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/sheet";
 import { Logo } from "@/components/marketing/logo";
 import { MenuPengguna } from "@/components/dasbor/menu-pengguna";
+import { TombolKeluar } from "@/components/dasbor/tombol-keluar";
 import { NavDasbor, type ItemNav } from "@/components/dasbor/nav-dasbor";
 import type { PenggunaAktif } from "@/lib/auth";
 
@@ -78,7 +79,8 @@ export function KerangkaDasbor({
             render={<Link href="/program">Katalog Kelas</Link>}
             nativeButton={false}
           />
-          <MenuPengguna pengguna={pengguna} />
+          <MenuPengguna pengguna={pengguna} tampilkanNama />
+          <TombolKeluar />
         </div>
       </header>
 
