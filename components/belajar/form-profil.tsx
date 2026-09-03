@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,8 +11,16 @@ import { simpanProfilAction, type HasilProfil } from "@/app/(santri)/belajar/pro
 import type { Profile } from "@/lib/database.types";
 
 export function FormProfil({ profil }: { profil: Profile }) {
+  // Sukses dikabarkan lewat toast, bukan Alert di dalam form: setelah simpan,
+  // form dipasang ulang (lihat `key` di halaman pemanggil) agar menampilkan
+  // nilai yang benar-benar tersimpan — dan remount itu mengosongkan state di
+  // sini, sehingga Alert sukses akan langsung hilang begitu muncul.
   const [hasil, kirim, sedang] = useActionState<HasilProfil, FormData>(
-    simpanProfilAction,
+    async (sebelumnya, formData) => {
+      const r = await simpanProfilAction(sebelumnya, formData);
+      if (r?.sukses) toast.success(r.sukses);
+      return r;
+    },
     undefined,
   );
 
@@ -58,13 +67,6 @@ export function FormProfil({ profil }: { profil: Profile }) {
         <Alert variant="destructive">
           <AlertCircle className="size-4" />
           <AlertDescription>{hasil.pesan}</AlertDescription>
-        </Alert>
-      )}
-
-      {hasil?.sukses && (
-        <Alert>
-          <CheckCircle2 className="size-4" />
-          <AlertDescription>{hasil.sukses}</AlertDescription>
         </Alert>
       )}
 

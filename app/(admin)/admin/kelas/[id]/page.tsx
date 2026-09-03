@@ -69,7 +69,7 @@ export default async function AdminDetailKelasPage({
 
         <TabsContent value="detail">
           <Card className="p-6">
-            <FormKelas kelas={kelas} program={program ?? []} />
+            <FormKelas key={kelas.diubah_at} kelas={kelas} program={program ?? []} />
           </Card>
         </TabsContent>
       </Tabs>

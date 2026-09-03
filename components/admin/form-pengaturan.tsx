@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,8 +26,16 @@ export function FormPengaturan({
   hero: Hero;
   statistik: Record<string, string>;
 }) {
+  // Sukses dikabarkan lewat toast, bukan Alert di dalam form: setelah simpan,
+  // form dipasang ulang (lihat `key` di halaman pemanggil) agar menampilkan
+  // nilai yang benar-benar tersimpan — dan remount itu mengosongkan state di
+  // sini, sehingga Alert sukses akan langsung hilang begitu muncul.
   const [hasil, kirim, sedang] = useActionState<HasilPengaturan, FormData>(
-    simpanPengaturanAction,
+    async (sebelumnya, formData) => {
+      const r = await simpanPengaturanAction(sebelumnya, formData);
+      if (r?.sukses) toast.success(r.sukses);
+      return r;
+    },
     undefined,
   );
 
@@ -152,13 +161,6 @@ export function FormPengaturan({
           <AlertDescription>{hasil.pesan}</AlertDescription>
         </Alert>
       )}
-      {hasil?.sukses && (
-        <Alert>
-          <CheckCircle2 className="size-4" />
-          <AlertDescription>{hasil.sukses}</AlertDescription>
-        </Alert>
-      )}
-
       <Button type="submit" size="lg" disabled={sedang}>
         {sedang && <Loader2 className="size-4 animate-spin" />}
         Simpan Pengaturan

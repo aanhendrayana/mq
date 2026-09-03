@@ -27,7 +27,7 @@ export default async function ProfilPage() {
 
         <hr />
 
-        <FormProfil profil={pengguna.profil} />
+        <FormProfil key={pengguna.profil.diubah_at} profil={pengguna.profil} />
       </Card>
     </div>
   );

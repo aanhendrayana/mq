@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,8 +19,16 @@ export function FormKelas({
   kelas?: Course;
   program: Pick<Program, "id" | "nama">[];
 }) {
+  // Sukses dikabarkan lewat toast, bukan Alert di dalam form: setelah simpan,
+  // form dipasang ulang (lihat `key` di halaman pemanggil) agar menampilkan
+  // nilai yang benar-benar tersimpan — dan remount itu mengosongkan state di
+  // sini, sehingga Alert sukses akan langsung hilang begitu muncul.
   const [hasil, kirim, sedang] = useActionState<HasilAdmin, FormData>(
-    simpanKelasAction,
+    async (sebelumnya, formData) => {
+      const r = await simpanKelasAction(sebelumnya, formData);
+      if (r?.sukses) toast.success(r.sukses);
+      return r;
+    },
     undefined,
   );
 
@@ -210,13 +219,6 @@ export function FormKelas({
           <AlertDescription>{hasil.pesan}</AlertDescription>
         </Alert>
       )}
-      {hasil?.sukses && (
-        <Alert>
-          <CheckCircle2 className="size-4" />
-          <AlertDescription>{hasil.sukses}</AlertDescription>
-        </Alert>
-      )}
-
       <Button type="submit" size="lg" disabled={sedang}>
         {sedang && <Loader2 className="size-4 animate-spin" />}
         {kelas ? "Simpan Perubahan" : "Buat Kelas"}

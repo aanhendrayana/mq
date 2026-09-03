@@ -75,6 +75,25 @@ export async function ambilPengaturan<K extends string>(
   return hasil;
 }
 
+/**
+ * Penanda versi seluruh pengaturan: waktu perubahan terbaru.
+ *
+ * Dipakai sebagai `key` pada form pengaturan supaya form dipasang ulang setiap
+ * kali datanya benar-benar berubah. Tanpa itu, input tak terkendali akan tetap
+ * memegang nilai lama sementara server sudah menyimpan nilai yang dinormalkan
+ * (mis. nomor WhatsApp 08... menjadi 62...).
+ */
+export async function versiPengaturan(): Promise<string> {
+  const supabase = await buatKlienServer();
+  const { data } = await supabase
+    .from("pengaturan_situs")
+    .select("diubah_at")
+    .order("diubah_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data?.diubah_at ?? "awal";
+}
+
 /** Profil pengasuh madrasah untuk halaman Tentang. */
 export async function ambilPengasuh(): Promise<Pengasuh | null> {
   const { pengasuh } = await ambilPengaturan("pengasuh");
