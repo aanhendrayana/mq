@@ -121,7 +121,7 @@ export default async function TentangPage() {
           <h2 className="font-heading text-2xl font-bold">Pengasuh madrasah</h2>
           <Card className="mt-6 flex-col gap-5 p-7 sm:flex-row sm:items-start">
             <span className="grid size-20 shrink-0 place-items-center rounded-full bg-primary/10 font-heading text-2xl font-bold text-primary">
-              {inisial(pengasuh.nama.replace(/^Ustadzah\s+/i, ""))}
+              {inisial(pengasuh.nama)}
             </span>
             <div className="min-w-0">
               <h3 className="font-heading text-xl font-bold">{pengasuh.nama}</h3>

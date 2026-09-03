@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { LayoutDashboard, LogOut, Menu, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TautanTombol } from "@/components/ui/tautan-tombol";
+import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
@@ -10,8 +11,11 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Logo } from "@/components/marketing/logo";
+import { MenuPengguna } from "@/components/dasbor/menu-pengguna";
+import { keluarAction } from "@/app/(auth)/actions";
 import { penggunaSekarang } from "@/lib/auth";
 import { BERANDA_PERAN } from "@/lib/konstanta";
+import { inisial } from "@/lib/format";
 
 const TAUTAN = [
   { href: "/program", label: "Program" },
@@ -19,6 +23,12 @@ const TAUTAN = [
   { href: "/cek-sertifikat", label: "Cek Sertifikat" },
   { href: "/kontak", label: "Kontak" },
 ];
+
+const LABEL_PERAN = {
+  santri: "Santriwati",
+  ustadz: "Ustadzah Pembimbing",
+  admin: "Administrator",
+} as const;
 
 export async function HeaderSitus() {
   const pengguna = await penggunaSekarang();
@@ -42,10 +52,15 @@ export async function HeaderSitus() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
-          {beranda ? (
-            <TautanTombol href={beranda} size="sm">
-              Dasbor Saya
-            </TautanTombol>
+          {pengguna && beranda ? (
+            <>
+              <TautanTombol href={beranda} variant="outline" size="sm">
+                Dasbor Saya
+              </TautanTombol>
+              {/* Nama pengguna & tombol keluar: tanpa ini, pengunjung yang sudah
+                  masuk tidak punya cara keluar dari halaman publik. */}
+              <MenuPengguna pengguna={pengguna} tampilkanNama />
+            </>
           ) : (
             <>
               <TautanTombol href="/masuk" variant="ghost" size="sm">
@@ -77,6 +92,26 @@ export async function HeaderSitus() {
                 <Logo tautan={null} />
               </SheetTitle>
             </SheetHeader>
+
+            {pengguna && (
+              <div className="flex items-center gap-3 px-4 pb-3">
+                <span
+                  aria-hidden
+                  className="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-sm font-semibold text-primary-foreground"
+                >
+                  {inisial(pengguna.profil.nama || "?")}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">
+                    {pengguna.profil.nama}
+                  </p>
+                  <p className="truncate text-xs text-primary">
+                    {LABEL_PERAN[pengguna.profil.peran]}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <nav className="flex flex-col gap-1 px-4">
               {TAUTAN.map((t) => (
                 <Link
@@ -87,10 +122,40 @@ export async function HeaderSitus() {
                   {t.label}
                 </Link>
               ))}
+
+              {pengguna && (
+                <>
+                  <Separator className="my-2" />
+                  <Link
+                    href={BERANDA_PERAN[pengguna.profil.peran]}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent"
+                  >
+                    <LayoutDashboard className="size-4" />
+                    Dasbor Saya
+                  </Link>
+                  <Link
+                    href="/belajar/profil"
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent"
+                  >
+                    <UserRound className="size-4" />
+                    Profil Saya
+                  </Link>
+                </>
+              )}
             </nav>
+
             <div className="mt-auto flex flex-col gap-2 p-4">
-              {beranda ? (
-                <TautanTombol href={beranda}>Dasbor Saya</TautanTombol>
+              {pengguna ? (
+                <form action={keluarAction}>
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    className="w-full text-destructive"
+                  >
+                    <LogOut className="size-4" />
+                    Keluar
+                  </Button>
+                </form>
               ) : (
                 <>
                   <TautanTombol href="/daftar">Daftar Gratis</TautanTombol>

@@ -76,10 +76,36 @@ export function jamTayang(detik: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+/**
+ * Sapaan yang mendahului nama, bukan bagian dari namanya.
+ *
+ * "Ummu" sengaja TIDAK termasuk: itu kunyah yang menyatu dengan nama
+ * ("Ummu Hanifah"), bukan gelar yang bisa dilepas.
+ */
+const SAPAAN = new Set([
+  "ustadzah", "ustadz", "ust", "ustadzh", "ustazah",
+  "dr", "prof", "drs", "dra", "h", "hj", "kyai", "nyai",
+  "ibu", "bu", "bapak", "pak", "mbak", "mas",
+]);
+
+/**
+ * Inisial untuk avatar, mis. "Ustadzah Ma'rifah, S.Q., Hafidzoh" → "M".
+ *
+ * Gelar di belakang koma dibuang dan sapaan di depan dilewati, supaya avatar
+ * tidak menampilkan inisial gelar ("UM" untuk "Ustadzah Ma'rifah") alih-alih
+ * inisial nama orangnya.
+ */
 export function inisial(nama: string): string {
-  return nama
+  const tanpaGelar = nama.split(",")[0];
+  const kata = tanpaGelar
     .split(/\s+/)
     .filter(Boolean)
+    .filter((k) => !SAPAAN.has(k.toLowerCase().replace(/\.$/, "")));
+
+  // Kalau seluruhnya ternyata sapaan, pakai kata aslinya daripada kosong.
+  const dipakai = kata.length > 0 ? kata : tanpaGelar.split(/\s+/).filter(Boolean);
+
+  return dipakai
     .slice(0, 2)
     .map((k) => k[0]?.toUpperCase() ?? "")
     .join("");
