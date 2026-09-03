@@ -44,23 +44,6 @@ export function FormProfil({ profil }: { profil: Profile }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="jenis_kelamin">Jenis Kelamin</Label>
-          <select
-            id="jenis_kelamin"
-            name="jenis_kelamin"
-            defaultValue={profil.jenis_kelamin ?? ""}
-            className="h-9 w-full rounded-lg border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
-            <option value="">Tidak diisi</option>
-            <option value="L">Laki-laki</option>
-            <option value="P">Perempuan</option>
-          </select>
-          <p className="text-xs text-muted-foreground">
-            Dipakai untuk menempatkan Anda di angkatan ikhwan atau akhwat.
-          </p>
-        </div>
-
-        <div className="space-y-2">
           <Label htmlFor="tgl_lahir">Tanggal Lahir</Label>
           <Input
             id="tgl_lahir"

@@ -10,7 +10,7 @@ export const SITUS = {
   nama: "Madrasah Qur'an Ummina",
   namaPendek: "MQ Ummina",
   deskripsi:
-    "Belajar membaca Al-Qur'an secara online bersama ustadz pembimbing: materi video terstruktur, halaqah setoran langsung, rapor tahsin, dan sertifikat.",
+    "Madrasah Qur'an daring khusus muslimah. Belajar membaca Al-Qur'an bersama ustadzah pembimbing: materi video terstruktur, halaqah setoran langsung, rapor tahsin, dan sertifikat.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
 } as const;
 

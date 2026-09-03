@@ -13,7 +13,7 @@ export default async function PengajarLayout({ children }: LayoutProps<"/pengaja
           item: [
             { href: "/pengajar", label: "Angkatan Saya", ikon: "users", persis: true },
             { href: "/pengajar/jadwal", label: "Jadwal Mengajar", ikon: "calendar" },
-            { href: "/pengajar/santri", label: "Santri Bimbingan", ikon: "topi-wisuda" },
+            { href: "/pengajar/santri", label: "Santriwati Bimbingan", ikon: "topi-wisuda" },
           ],
         },
       ]}

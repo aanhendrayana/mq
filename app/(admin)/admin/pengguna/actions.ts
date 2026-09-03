@@ -12,7 +12,7 @@ export type HasilPengguna = { pesan?: string; sukses?: string } | undefined;
  * Mengubah peran seorang pengguna.
  *
  * Perubahan ini nyata: mengangkat seseorang menjadi admin memberinya akses ke
- * seluruh data santri dan tombol verifikasi pembayaran. Karena itu ada dua
+ * seluruh data santriwati dan tombol verifikasi pembayaran. Karena itu ada dua
  * pengaman di sini — dan trigger `jaga_peran_profil()` di database sebagai
  * pengaman ketiga bila jalur ini pernah dilewati.
  */

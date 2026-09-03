@@ -19,9 +19,9 @@ export type IsiKelas = {
 };
 
 /**
- * Memuat satu kelas beserta seluruh materinya untuk santri yang terdaftar.
+ * Memuat satu kelas beserta seluruh materinya untuk santriwati yang terdaftar.
  *
- * Mengembalikan null bila kelas tidak ada ATAU santri belum terdaftar — RLS
+ * Mengembalikan null bila kelas tidak ada ATAU santriwati belum terdaftar — RLS
  * pada tabel `lessons` juga menutup materinya, jadi ini lapisan kedua, bukan
  * satu-satunya pengaman.
  */

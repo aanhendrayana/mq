@@ -32,7 +32,7 @@ const KEUNGGULAN = [
   },
   {
     ikon: Users,
-    judul: "Halaqah setoran bersama ustadz",
+    judul: "Halaqah setoran bersama ustadzah",
     isi: "Membaca Al-Qur'an tidak cukup dari menonton. Dua kali sepekan Anda menyetorkan bacaan langsung dan dikoreksi saat itu juga.",
   },
   {
@@ -42,8 +42,8 @@ const KEUNGGULAN = [
   },
   {
     ikon: MessagesSquare,
-    judul: "Kelompok kecil, pembimbing tetap",
-    isi: "Satu angkatan dibatasi jumlahnya dan dipisah ikhwan–akhwat, dengan ustadz pembimbing yang sama sepanjang program.",
+    judul: "Ruang belajar sesama muslimah",
+    isi: "Seluruh santriwati dan pengajarnya perempuan, kelompoknya kecil, dan pembimbingnya tetap sepanjang program. Anda bisa membaca dengan tenang tanpa sungkan.",
   },
 ];
 
@@ -115,10 +115,10 @@ export default async function BerandaPage() {
           {Object.keys(statistik).length > 0 && (
             <dl className="mx-auto mt-16 grid max-w-3xl grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
               {[
-                ["santri", "Santri terdaftar"],
-                ["pengajar", "Ustadz pembimbing"],
+                ["santri", "Santriwati terdaftar"],
+                ["pengajar", "Ustadzah pembimbing"],
                 ["kelas", "Kelas tersedia"],
-                ["kepuasan", "Kepuasan santri"],
+                ["kepuasan", "Kepuasan santriwati"],
               ].map(([kunci, label]) =>
                 statistik[kunci] ? (
                   <div key={kunci} className="text-center">
@@ -143,7 +143,7 @@ export default async function BerandaPage() {
           <p className="mt-4 leading-relaxed text-pretty text-muted-foreground">
             Kesalahan makhraj hampir selalu luput kalau tidak ada yang
             mendengarkan. Karena itu setiap kelas di sini menggabungkan materi
-            mandiri dengan halaqah setoran bersama ustadz.
+            mandiri dengan halaqah setoran bersama ustadzah.
           </p>
         </div>
 
@@ -247,7 +247,7 @@ export default async function BerandaPage() {
       {/* ------------------------------------------------------------ Testimoni */}
       {testimoni && testimoni.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 py-20">
-          <h2 className="font-heading text-3xl font-bold">Kata santri kami</h2>
+          <h2 className="font-heading text-3xl font-bold">Kata santriwati kami</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {testimoni.map((t) => (
               <Card key={t.id} className="gap-4 p-6">
@@ -299,7 +299,7 @@ export default async function BerandaPage() {
             Tidak ada kata terlambat untuk memperbaiki bacaan
           </h2>
           <p className="max-w-xl leading-relaxed text-pretty text-muted-foreground">
-            Banyak santri kami baru mulai di usia 40, 50, bahkan 60 tahun. Yang
+            Banyak santriwati kami baru mulai di usia 40, 50, bahkan 60 tahun. Yang
             dibutuhkan hanya kemauan dan pembimbing yang sabar.
           </p>
           <TautanTombol href="/program" size="lg" className="mt-2 h-12 px-8 text-base">

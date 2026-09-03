@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buatKlienServer } from "@/lib/supabase/server";
 import { buatPdfSertifikat } from "@/lib/sertifikat-pdf";
+import { ambilPengasuh } from "@/lib/pengaturan";
 
 // @react-pdf/renderer butuh API Node, tidak bisa berjalan di Edge Runtime.
 export const runtime = "nodejs";
@@ -35,6 +36,10 @@ export async function GET(
     return new NextResponse("Sertifikat tidak ditemukan.", { status: 404 });
   }
 
+  // Blok tanda tangan menyebut pengasuh madrasah yang sedang menjabat, dibaca
+  // dari pengaturan situs agar bisa diperbarui admin tanpa deploy ulang.
+  const pengasuh = await ambilPengasuh();
+
   const pdf = await buatPdfSertifikat({
     nomor: data.nomor,
     namaSantri: data.profiles?.nama ?? "—",
@@ -44,6 +49,10 @@ export async function GET(
     nilaiRata: data.nilai_rata === null ? null : Number(data.nilai_rata),
     tglTerbit: data.tgl_terbit,
     tokenVerifikasi: data.token_verifikasi,
+    penandatangan: {
+      nama: pengasuh?.nama ?? "Pimpinan Madrasah",
+      peran: pengasuh?.peran ?? "Madrasah Qur'an Ummina",
+    },
   });
 
   const namaBerkas = `Sertifikat-${data.nomor.replaceAll("/", "-")}.pdf`;

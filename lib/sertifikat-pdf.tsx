@@ -20,6 +20,8 @@ export type DataSertifikat = {
   nilaiRata: number | null;
   tglTerbit: string;
   tokenVerifikasi: string;
+  /** Nama & jabatan yang tercetak di blok tanda tangan. */
+  penandatangan: { nama: string; peran: string };
 };
 
 /**
@@ -140,6 +142,7 @@ const g = StyleSheet.create({
   kolomKaki: { alignItems: "center", width: 150 },
   garisTtd: { width: 130, height: 0.8, backgroundColor: ABU, marginBottom: 5 },
   teksKaki: { fontSize: 8, color: ABU, textAlign: "center" },
+  namaTtd: { fontFamily: "Helvetica-Bold", fontSize: 8.5, color: TINTA },
   qr: { width: 62, height: 62 },
   teksQr: { fontSize: 6.5, color: ABU, marginTop: 4, textAlign: "center", maxWidth: 92 },
 });
@@ -222,8 +225,8 @@ function Lembar({ data, qr }: { data: DataSertifikat; qr: string }) {
 
               <View style={g.kolomKaki}>
                 <View style={g.garisTtd} />
-                <Text style={g.teksKaki}>Pimpinan Madrasah</Text>
-                <Text style={g.teksKaki}>Madrasah Qur&apos;an Ummina</Text>
+                <Text style={[g.teksKaki, g.namaTtd]}>{data.penandatangan.nama}</Text>
+                <Text style={g.teksKaki}>{data.penandatangan.peran}</Text>
               </View>
             </View>
           </View>

@@ -39,7 +39,7 @@ export default async function JadwalPengajarPage() {
         <KeadaanKosong
           ikon={CalendarDays}
           judul="Tidak ada pertemuan terjadwal"
-          keterangan="Tambahkan pertemuan dari halaman angkatan agar santri melihat jadwalnya."
+          keterangan="Tambahkan pertemuan dari halaman angkatan agar santriwati melihat jadwalnya."
         />
       ) : (
         <div className="mb-10 space-y-2">

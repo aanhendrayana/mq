@@ -16,8 +16,8 @@ import { inisial } from "@/lib/format";
 import type { PenggunaAktif } from "@/lib/auth";
 
 const LABEL_PERAN = {
-  santri: "Santri",
-  ustadz: "Ustadz Pembimbing",
+  santri: "Santriwati",
+  ustadz: "Ustadzah Pembimbing",
   admin: "Administrator",
 } as const;
 

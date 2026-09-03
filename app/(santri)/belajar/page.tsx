@@ -28,7 +28,7 @@ export default async function BelajarPage() {
       .order("dibuat_at", { ascending: false }),
   ]);
 
-  // Sesi halaqah terdekat yang belum lewat, agar santri tidak melewatkannya.
+  // Sesi halaqah terdekat yang belum lewat, agar santriwati tidak melewatkannya.
   const idBatch = kelas.map((k) => k.batch_id).filter(Boolean) as string[];
   const sekarang = await waktuPermintaan();
   const { data: sesiBerikut } = idBatch.length
@@ -50,7 +50,7 @@ export default async function BelajarPage() {
         keterangan="Semoga Allah memudahkan langkah Anda mempelajari Kitab-Nya."
       />
 
-      {/* Pesanan yang belum tuntas ditaruh paling atas: santri sering lupa
+      {/* Pesanan yang belum tuntas ditaruh paling atas: santriwati sering lupa
           menyelesaikan pembayaran setelah menutup halaman tagihan. */}
       {pesananTertunda && pesananTertunda.length > 0 && (
         <div className="mb-6 space-y-3">

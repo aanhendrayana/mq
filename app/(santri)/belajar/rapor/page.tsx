@@ -43,7 +43,7 @@ export default async function RaporPage() {
     .eq("santri_id", pengguna.id)
     .order("tanggal");
 
-  // Satu panggilan per kelas; jumlah kelas seorang santri selalu kecil.
+  // Satu panggilan per kelas; jumlah kelas seorang santriwati selalu kecil.
   const capaian = new Map<string, RingkasanCapaian>();
   for (const e of enroll ?? []) {
     const { data } = await supabase.rpc("ringkasan_capaian", {
@@ -57,7 +57,7 @@ export default async function RaporPage() {
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
       <JudulHalaman
         judul="Rapor Tahsin"
-        keterangan="Perkembangan bacaan Anda dari pertemuan ke pertemuan, dinilai langsung oleh ustadz pembimbing."
+        keterangan="Perkembangan bacaan Anda dari pertemuan ke pertemuan, dinilai langsung oleh ustadzah pembimbing."
       />
 
       {!enroll || enroll.length === 0 ? (
@@ -220,12 +220,12 @@ export default async function RaporPage() {
                       </div>
                     </Card>
 
-                    {/* ---------------------------------------- Catatan ustadz */}
+                    {/* ---------------------------------------- Catatan ustadzah */}
                     {milik.some((p) => p.catatan_ustadz) && (
                       <Card className="gap-3 p-5">
                         <h3 className="font-heading flex items-center gap-2 font-semibold">
                           <MessageSquareQuote className="size-4" />
-                          Catatan ustadz
+                          Catatan ustadzah
                         </h3>
                         <ul className="space-y-3">
                           {milik

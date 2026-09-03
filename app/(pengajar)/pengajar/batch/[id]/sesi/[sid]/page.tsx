@@ -49,7 +49,7 @@ export default async function SesiPage({
         santri_id: e.santri_id,
         enrollment_id: e.id,
         nama: e.profiles?.nama ?? "(tanpa nama)",
-        // Default 'hadir': lebih cepat bagi ustadz mengubah beberapa yang absen
+        // Default 'hadir': lebih cepat bagi ustadzah mengubah beberapa yang absen
         // daripada mencentang seluruh kelas satu per satu.
         status: h?.status ?? "hadir",
         nilai_makhraj: n?.nilai_makhraj ?? 80,
@@ -92,7 +92,7 @@ export default async function SesiPage({
 
       {awal.length === 0 ? (
         <Card className="p-8 text-center text-sm text-muted-foreground">
-          Belum ada santri di angkatan ini, jadi tidak ada yang bisa diabsen.
+          Belum ada santriwati di angkatan ini, jadi tidak ada yang bisa diabsen.
         </Card>
       ) : (
         <TabelPenilaian

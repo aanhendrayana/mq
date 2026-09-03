@@ -63,7 +63,7 @@ export function DialogBatch({
           <DialogTitle>{batch ? "Ubah Angkatan" : "Angkatan Baru"}</DialogTitle>
           <DialogDescription>
             Angkatan yang berstatus &ldquo;pendaftaran&rdquo; atau
-            &ldquo;berjalan&rdquo; muncul sebagai pilihan saat santri mendaftar.
+            &ldquo;berjalan&rdquo; muncul sebagai pilihan saat santriwati mendaftar.
           </DialogDescription>
         </DialogHeader>
 
@@ -95,12 +95,12 @@ export function DialogBatch({
               name="nama"
               required
               defaultValue={batch?.nama ?? ""}
-              placeholder="Tahsin Dasar — Angkatan 5 (Akhwat)"
+              placeholder="Tahsin Dasar — Angkatan 5"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="ustadz_id">Ustadz pembimbing</Label>
+            <Label htmlFor="ustadz_id">Ustadzah pembimbing</Label>
             <select
               id="ustadz_id"
               name="ustadz_id"
@@ -116,7 +116,7 @@ export function DialogBatch({
             </select>
             <p className="text-xs text-muted-foreground">
               Hanya pembimbing yang dipilih di sini yang bisa mengabsen dan
-              menilai santri angkatan ini.
+              menilai santriwati angkatan ini.
             </p>
           </div>
 
@@ -143,7 +143,7 @@ export function DialogBatch({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="kuota">Kuota santri</Label>
+              <Label htmlFor="kuota">Kuota santriwati</Label>
               <Input
                 id="kuota"
                 name="kuota"

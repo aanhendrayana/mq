@@ -212,7 +212,7 @@ export default async function DetailKelasPage({ params }: PageProps<"/program/[s
                 <ul className="space-y-2.5 text-sm">
                   {[
                     "Akses materi video selamanya",
-                    "Halaqah setoran bersama ustadz",
+                    "Halaqah setoran bersama ustadzah",
                     "Rapor penilaian bacaan",
                     "Sertifikat kelulusan",
                     "Tanya-jawab dengan pembimbing",
@@ -323,7 +323,7 @@ export default async function DetailKelasPage({ params }: PageProps<"/program/[s
               <h2 className="font-heading text-2xl font-bold">Jadwal halaqah</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 Setoran bacaan dilakukan berkelompok sesuai angkatan, dengan
-                ustadz pembimbing yang tetap sepanjang program.
+                ustadzah pembimbing yang tetap sepanjang program.
               </p>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 {angkatan.map((a) => (
@@ -343,7 +343,7 @@ export default async function DetailKelasPage({ params }: PageProps<"/program/[s
                       )}
                       <div className="flex items-center gap-1.5">
                         <Users className="size-3.5" />
-                        Kuota {a.kuota} santri
+                        Kuota {a.kuota} santriwati
                       </div>
                     </dl>
                   </Card>
@@ -355,7 +355,7 @@ export default async function DetailKelasPage({ params }: PageProps<"/program/[s
           {/* -------------------------------------------------------- Pengajar */}
           {pengajar && pengajar.length > 0 && (
             <section>
-              <h2 className="font-heading text-2xl font-bold">Ustadz pembimbing</h2>
+              <h2 className="font-heading text-2xl font-bold">Ustadzah pembimbing</h2>
               <div className="mt-5 space-y-4">
                 {pengajar.map((u) => (
                   <Card key={u.id} className="flex-row items-start gap-4 p-5">

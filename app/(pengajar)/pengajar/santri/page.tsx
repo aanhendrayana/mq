@@ -14,7 +14,7 @@ import { wajibPengajar } from "@/lib/auth";
 import { buatKlienServer } from "@/lib/supabase/server";
 import { nomorWa } from "@/lib/format";
 
-export const metadata: Metadata = { title: "Santri Bimbingan" };
+export const metadata: Metadata = { title: "Santriwati Bimbingan" };
 
 export default async function SantriBimbinganPage() {
   await wajibPengajar();
@@ -38,15 +38,15 @@ export default async function SantriBimbinganPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <JudulHalaman
-        judul="Santri Bimbingan"
-        keterangan="Seluruh santri dari angkatan yang Anda bimbing, beserta rata-rata nilai setorannya."
+        judul="Santriwati Bimbingan"
+        keterangan="Seluruh santriwati dari angkatan yang Anda bimbing, beserta rata-rata nilai setorannya."
       />
 
       {!enroll || enroll.length === 0 ? (
         <KeadaanKosong
           ikon={GraduationCap}
-          judul="Belum ada santri"
-          keterangan="Santri akan muncul di sini setelah admin menempatkan mereka di angkatan Anda."
+          judul="Belum ada santriwati"
+          keterangan="Santriwati akan muncul di sini setelah admin menempatkan mereka di angkatan Anda."
         />
       ) : (
         <Card className="p-0">

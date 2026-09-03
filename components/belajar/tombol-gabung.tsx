@@ -24,7 +24,7 @@ export function TombolGabung({
   if (!link) {
     return (
       <p className="text-xs text-muted-foreground">
-        Tautan pertemuan belum diisi ustadz pembimbing.
+        Tautan pertemuan belum diisi ustadzah pembimbing.
       </p>
     );
   }

@@ -23,7 +23,7 @@ export function KerangkaDasbor({
 }: {
   pengguna: PenggunaAktif;
   nav: { label?: string; item: ItemNav[] }[];
-  /** Ditampilkan di sidebar untuk membedakan panel ustadz/admin dari santri. */
+  /** Ditampilkan di sidebar untuk membedakan panel ustadz/admin dari santriwati. */
   judulPanel?: string;
   children: React.ReactNode;
 }) {

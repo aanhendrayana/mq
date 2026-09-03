@@ -20,6 +20,12 @@ export type Hero = {
   catatan: string;
 };
 
+export type Pengasuh = {
+  nama: string;
+  peran: string;
+  bio: string;
+};
+
 export type Statistik = Record<string, string>;
 export type LangkahAlur = { judul: string; isi: string };
 
@@ -36,11 +42,11 @@ const CADANGAN = {
     atas_nama: "—",
   } satisfies Rekening,
   hero: {
-    judul: "Belajar Membaca Al-Qur'an dengan Bimbingan Ustadz",
+    judul: "Belajar Membaca Al-Qur'an dengan Bimbingan Ustadzah",
     subjudul:
       "Materi video terstruktur yang bisa diulang kapan saja, dipadukan halaqah setoran langsung.",
     cta: "Lihat Program",
-    catatan: "Kelas daring · Bimbingan ustadz",
+    catatan: "Kelas daring · Bimbingan ustadzah",
   } satisfies Hero,
 };
 
@@ -67,6 +73,13 @@ export async function ambilPengaturan<K extends string>(
       null;
   }
   return hasil;
+}
+
+/** Profil pengasuh madrasah untuk halaman Tentang. */
+export async function ambilPengasuh(): Promise<Pengasuh | null> {
+  const { pengasuh } = await ambilPengaturan("pengasuh");
+  const p = pengasuh as Partial<Pengasuh> | null;
+  return p?.nama ? { nama: p.nama, peran: p.peran ?? "", bio: p.bio ?? "" } : null;
 }
 
 export async function ambilKontak(): Promise<Kontak> {

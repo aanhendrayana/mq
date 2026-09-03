@@ -18,7 +18,7 @@ update public.profiles p
  where u.id = p.id
    and u.email = 'ganti-dengan-email-admin@contoh.com';
 
--- Jadikan ustadz
+-- Jadikan ustadzah
 update public.profiles p
    set peran = 'ustadz'
   from auth.users u

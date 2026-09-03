@@ -28,7 +28,6 @@ export type Profile = {
   nama: string;
   no_hp: string | null;
   peran: PeranPengguna;
-  jenis_kelamin: "L" | "P" | null;
   tgl_lahir: string | null;
   kota: string | null;
   avatar_url: string | null;

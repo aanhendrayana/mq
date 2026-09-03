@@ -63,7 +63,7 @@ export default async function JadwalPage() {
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <JudulHalaman
         judul="Jadwal Halaqah"
-        keterangan="Pertemuan setoran bacaan bersama ustadz pembimbing angkatan Anda."
+        keterangan="Pertemuan setoran bacaan bersama ustadzah pembimbing angkatan Anda."
       />
 
       {angkatan && angkatan.length > 0 && (
@@ -94,7 +94,7 @@ export default async function JadwalPage() {
           <h2 className="font-heading mb-3 text-lg font-semibold">Pertemuan mendatang</h2>
           {mendatang.length === 0 ? (
             <Card className="mb-8 p-6 text-center text-sm text-muted-foreground">
-              Belum ada pertemuan terjadwal. Ustadz pembimbing akan menambahkannya.
+              Belum ada pertemuan terjadwal. Ustadzah pembimbing akan menambahkannya.
             </Card>
           ) : (
             <div className="mb-10 space-y-3">
@@ -171,7 +171,7 @@ export default async function JadwalPage() {
       <p className="mt-8 flex items-start gap-2 rounded-lg border bg-card p-4 text-xs leading-relaxed text-muted-foreground">
         <Video className="mt-0.5 size-4 shrink-0" />
         Tautan pertemuan aktif 15 menit sebelum jadwal dimulai. Siapkan mushaf
-        dan tempat yang tenang agar bacaan Anda terdengar jelas oleh ustadz.
+        dan tempat yang tenang agar bacaan Anda terdengar jelas oleh ustadzah.
       </p>
     </div>
   );

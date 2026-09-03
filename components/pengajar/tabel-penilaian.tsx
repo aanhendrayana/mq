@@ -160,7 +160,7 @@ export function TabelPenilaian({
                   </div>
                   <div className="space-y-1.5">
                     <label htmlFor={`${b.santri_id}-catatan`} className="text-xs font-medium">
-                      Catatan untuk santri
+                      Catatan untuk santriwati
                     </label>
                     <Textarea
                       id={`${b.santri_id}-catatan`}
@@ -182,13 +182,13 @@ export function TabelPenilaian({
                       · {predikat(rata)}
                     </>
                   ) : (
-                    "Ubah salah satu nilai untuk menyimpan penilaian santri ini."
+                    "Ubah salah satu nilai untuk menyimpan penilaian santriwati ini."
                   )}
                 </p>
               </>
             ) : (
               <p className="rounded-lg bg-muted/60 p-3 text-xs text-muted-foreground">
-                Santri tidak hadir, jadi tidak ada nilai setoran yang disimpan —
+                Santriwati tidak hadir, jadi tidak ada nilai setoran yang disimpan —
                 rata-rata rapornya tidak akan terpengaruh.
               </p>
             )}

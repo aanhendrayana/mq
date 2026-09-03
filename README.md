@@ -1,6 +1,7 @@
 # MQ Ummina Online
 
-Platform kursus membaca Al-Qur'an daring untuk **Madrasah Qur'an Ummina**.
+Platform kursus membaca Al-Qur'an daring untuk **Madrasah Qur'an Ummina** —
+madrasah **khusus muslimah**: seluruh santriwati dan pengajarnya perempuan.
 
 Alurnya meniru model kursus daring pada umumnya — katalog kelas, beli, belajar
 mandiri lewat video — lalu ditambah bagian yang khas madrasah Qur'an: **halaqah
@@ -10,6 +11,13 @@ tahsin**, dan **sertifikat yang bisa diverifikasi publik**.
 - **Stack:** Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui (Base UI) · Supabase
 - **Pembayaran:** transfer manual + kode unik + verifikasi admin
 - **Video:** YouTube unlisted (penyedia disimpan per pelajaran, siap pindah ke Bunny.net)
+
+> **Istilah.** Antarmuka memakai *santriwati* dan *ustadzah*. Pengenal di
+> database sengaja dibiarkan netral (`santri_id`, `ustadz_id`, nilai enum
+> `'santri'`/`'ustadz'`) — menggantinya menyentuh seluruh migrasi, tipe, dan
+> query tanpa mengubah apa pun yang dilihat pengguna. Kolom jenis kelamin
+> memang tidak ada: di madrasah khusus muslimah kolom itu tidak akan pernah
+> membedakan satu baris dari baris lainnya.
 
 ---
 
@@ -69,7 +77,7 @@ Kalau proyeknya sudah di-`supabase link`, langkah 2 bisa diringkas menjadi
 `supabase db push`.
 
 > Video pada data contoh memakai video uji publik. Ganti dengan video MQ Ummina
-> yang sebenarnya lewat **/admin/kelas** sebelum dipakai santri.
+> yang sebenarnya lewat **/admin/kelas** sebelum dipakai santriwati.
 
 ## 2. Menjalankan aplikasi
 
@@ -104,24 +112,24 @@ Setelah ada satu admin, peran berikutnya diatur lewat **/admin/pengguna**.
 
 ## Alur kerja sehari-hari
 
-**Santri** — daftar akun → pilih kelas → transfer sejumlah nominal **berikut
+**Santriwati** — daftar akun → pilih kelas → transfer sejumlah nominal **berikut
 kode uniknya** → unggah bukti → tunggu verifikasi → belajar video → ikut halaqah
 → lihat rapor → unduh sertifikat.
 
-**Ustadz** (`/pengajar`) — melihat angkatan bimbingannya, menjadwalkan
+**Ustadzah** (`/pengajar`) — melihat angkatan bimbingannya, menjadwalkan
 pertemuan, mengisi absensi dan nilai empat aspek dalam satu layar saat halaqah
 berlangsung.
 
 **Admin** (`/admin`) — memverifikasi pembayaran, mengelola kelas & materi,
-membuat angkatan dan menempatkan santri, menerbitkan sertifikat, mengubah
+membuat angkatan dan menempatkan santriwati, menerbitkan sertifikat, mengubah
 konten halaman depan tanpa deploy ulang.
 
 ### Kode unik pembayaran
 
 Nominal tagihan selalu `harga + kode unik 3 digit` (mis. Rp 450.000 →
 **Rp 450.137**). Kode itulah yang dipakai admin mencocokkan pembayaran di mutasi
-rekening ketika dua orang membayar nominal sama di hari yang sama. Santri yang
-membulatkan nominalnya akan memperlambat verifikasinya sendiri.
+rekening ketika dua orang membayar nominal sama di hari yang sama. Santriwati
+yang membulatkan nominalnya akan memperlambat verifikasinya sendiri.
 
 ---
 
@@ -150,16 +158,16 @@ terjangkau.
 ## Catatan keamanan
 
 - **RLS adalah pengaman utama, bukan pelengkap.** Anon key ada di dalam bundel
-  JavaScript dan bisa dibaca siapa saja; yang memisahkan data satu santri dari
-  santri lain hanyalah policy di `20260903000003_rls.sql`.
+  JavaScript dan bisa dibaca siapa saja; yang memisahkan data satu santriwati
+  dari santriwati lain hanyalah policy di `20260903000003_rls.sql`.
 - Fungsi cek peran ditulis `security definer` — policy pada `profiles` yang
   melakukan subquery ke `profiles` akan memicu rekursi tak berujung.
-- Santri **tidak punya** hak INSERT/UPDATE pada `orders`. Pesanan dibuat lewat
+- Santriwati **tidak punya** hak INSERT/UPDATE pada `orders`. Pesanan dibuat lewat
   `buat_pesanan()` dan bukti diunggah lewat `unggah_bukti()`, sehingga harga
   selalu ditentukan server.
 - Verifikasi pembayaran (`setujui_pesanan()`) menandai lunas **dan** membuka
-  akses kelas dalam satu transaksi, supaya tak pernah ada santri yang sudah
-  membayar tapi tidak bisa masuk kelas.
+  akses kelas dalam satu transaksi, supaya tak pernah ada santriwati yang
+  sudah membayar tapi tidak bisa masuk kelas.
 - Bucket `bukti-bayar` privat; admin membukanya lewat URL bertanda tangan
   berumur 10 menit, bukan URL publik permanen.
 - Verifikasi sertifikat publik lewat fungsi `cek_sertifikat()`, bukan `select`
@@ -167,7 +175,7 @@ terjangkau.
 
 ### Batas yang perlu diketahui
 
-Video YouTube *unlisted* **bisa bocor** kalau tautannya disebarkan santri, dan
+Video YouTube *unlisted* **bisa bocor** kalau tautannya disebarkan santriwati, dan
 tidak ada cara mencegahnya sepenuhnya. Karena `video_provider` tersimpan per
 pelajaran di database, pindah ke Bunny.net (yang mendukung token & DRM) nanti
 hanya perlu menambah satu cabang di
@@ -199,12 +207,12 @@ psql "$(supabase status -o env | grep '^DB_URL=' | cut -d= -f2- | tr -d '"')" \
 
 Pemeriksaan yang gagal memunculkan exception dan menghentikan skrip di titik
 yang salah. Yang diuji antara lain: tamu tidak melihat `video_id` pelajaran
-berbayar, santri tidak bisa menandai pesanannya lunas sendiri atau mengangkat
-dirinya jadi admin, harga tidak bisa dipalsukan dari klien, ustadz tidak bisa
-menilai santri di luar bimbingannya, dan token sertifikat tidak bisa dipanen
+berbayar, santriwati tidak bisa menandai pesanannya lunas sendiri atau mengangkat
+dirinya jadi admin, harga tidak bisa dipalsukan dari klien, ustadzah tidak bisa
+menilai santriwati di luar bimbingannya, dan token sertifikat tidak bisa dipanen
 dari tabel.
 
 Yang **tidak** tercakup skrip ini dan perlu diperiksa manual:
 
-- santri membuka `/admin` dan `/pengajar` → harus dialihkan oleh `proxy.ts`
+- santriwati membuka `/admin` dan `/pengajar` → harus dialihkan oleh `proxy.ts`
 - membuka objek `bukti-bayar` milik orang lain lewat URL Storage → harus 403

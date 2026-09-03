@@ -9,7 +9,7 @@ import { buatKlienServer } from "@/lib/supabase/server";
  * `course_id` dikirim dari klien hanya untuk mengisi kolom denormalisasi;
  * kalau nilainya tidak cocok dengan pelajaran, FK gabungan
  * (lesson_id, course_id) -> lessons akan menolak barisnya di database.
- * Policy RLS juga memastikan santri hanya bisa menulis progres kelas yang
+ * Policy RLS juga memastikan santriwati hanya bisa menulis progres kelas yang
  * memang diikutinya.
  */
 export async function simpanProgresAction(input: {

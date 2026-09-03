@@ -26,11 +26,12 @@ create table public.profiles (
   nama          text not null default '',
   no_hp         text,
   peran         peran_pengguna not null default 'santri',
-  jenis_kelamin char(1) check (jenis_kelamin in ('L', 'P')),
+  -- Tidak ada kolom jenis kelamin: madrasah ini khusus muslimah, jadi kolom
+  -- seperti itu tidak akan pernah membedakan satu baris dari baris lainnya.
   tgl_lahir     date,
   kota          text,
   avatar_url    text,
-  bio           text, -- dipakai untuk profil ustadz di halaman kelas
+  bio           text, -- dipakai untuk profil ustadzah di halaman kelas
   dibuat_at     timestamptz not null default now(),
   diubah_at     timestamptz not null default now()
 );
@@ -179,7 +180,7 @@ create table public.enrollments (
   constraint enrollments_unik unique (santri_id, course_id)
 );
 comment on table public.enrollments is
-  'Hak akses santri atas sebuah kelas. Dibuat saat pembayaran disetujui admin.';
+  'Hak akses santriwati atas sebuah kelas. Dibuat saat pembayaran disetujui admin.';
 
 create index enrollments_santri_idx on public.enrollments (santri_id, status);
 create index enrollments_batch_idx  on public.enrollments (batch_id);
@@ -209,7 +210,7 @@ comment on table public.orders is 'Pesanan pembayaran manual (transfer bank + bu
 create index orders_santri_idx on public.orders (santri_id, dibuat_at desc);
 create index orders_status_idx on public.orders (status, dibuat_at desc);
 
--- Cegah pesanan ganda: satu santri hanya boleh punya satu pesanan hidup per kelas.
+-- Cegah pesanan ganda: satu santriwati hanya boleh punya satu pesanan hidup per kelas.
 create unique index orders_aktif_unik
   on public.orders (santri_id, course_id)
   where status in ('menunggu_bayar', 'menunggu_verifikasi', 'lunas');
@@ -231,7 +232,7 @@ create table public.progres_pelajaran (
   constraint progres_unik unique (santri_id, lesson_id)
 );
 comment on table public.progres_pelajaran is
-  'Posisi tonton & status selesai per pelajaran per santri.';
+  'Posisi tonton & status selesai per pelajaran per santriwati.';
 
 create index progres_santri_kelas_idx
   on public.progres_pelajaran (santri_id, course_id);
@@ -270,11 +271,11 @@ create table public.penilaian_setoran (
   catatan_ustadz   text,
   rekaman_url      text,
   dibuat_at        timestamptz not null default now(),
-  -- satu penilaian per santri per sesi halaqah
+  -- satu penilaian per santriwati per sesi halaqah
   constraint penilaian_sesi_unik unique (sesi_id, santri_id)
 );
 comment on table public.penilaian_setoran is
-  'Hasil koreksi bacaan oleh ustadz, dasar dari rapor tahsin.';
+  'Hasil koreksi bacaan oleh ustadzah, dasar dari rapor tahsin.';
 
 create index penilaian_santri_idx on public.penilaian_setoran (santri_id, tanggal);
 create index penilaian_enroll_idx on public.penilaian_setoran (enrollment_id);
@@ -340,7 +341,7 @@ create table public.testimoni (
   id           uuid primary key default gen_random_uuid(),
   course_id    uuid references public.courses (id) on delete set null,
   nama         text not null,
-  keterangan   text, -- 'Santri Tahsin Dasar, Bandung'
+  keterangan   text, -- 'Santriwati Tahsin Dasar, Bandung'
   isi          text not null,
   rating       smallint not null default 5 check (rating between 1 and 5),
   avatar_url   text,

@@ -37,7 +37,7 @@ export default async function AdminBatchPage() {
         .neq("status", "berhenti"),
     ]);
 
-  // Santri yang sudah membayar tapi belum punya angkatan — kalau dibiarkan,
+  // Santriwati yang sudah membayar tapi belum punya angkatan — kalau dibiarkan,
   // mereka tidak akan pernah melihat jadwal halaqah.
   const belumDitempatkan = (enroll ?? []).filter((e) => !e.batch_id);
 
@@ -64,7 +64,7 @@ export default async function AdminBatchPage() {
         <Card className="mb-8 gap-3 border-emas/50 bg-emas/5 p-5">
           <h2 className="font-heading flex items-center gap-2 font-semibold">
             <UserRound className="size-4" />
-            {belumDitempatkan.length} santri belum ditempatkan di angkatan
+            {belumDitempatkan.length} santriwati belum ditempatkan di angkatan
           </h2>
           <p className="text-sm text-muted-foreground">
             Mereka sudah punya akses materi, tetapi belum melihat jadwal halaqah
@@ -85,7 +85,7 @@ export default async function AdminBatchPage() {
         <KeadaanKosong
           ikon={UsersRound}
           judul="Belum ada angkatan"
-          keterangan="Buat angkatan agar santri bisa memilihnya saat mendaftar dan mendapat jadwal halaqah."
+          keterangan="Buat angkatan agar santriwati bisa memilihnya saat mendaftar dan mendapat jadwal halaqah."
         />
       ) : (
         <div className="space-y-4">
@@ -142,7 +142,7 @@ export default async function AdminBatchPage() {
                 {calon.length > 0 && anggota.length < b.kuota && (
                   <div className="rounded-lg border border-dashed p-3">
                     <p className="mb-2 text-xs font-medium text-muted-foreground">
-                      Santri kelas ini yang belum punya angkatan:
+                      Santriwati kelas ini yang belum punya angkatan:
                     </p>
                     <ul className="space-y-1.5">
                       {calon.map((e) => (

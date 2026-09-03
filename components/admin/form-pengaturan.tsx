@@ -61,8 +61,8 @@ export function FormPengaturan({
         <div>
           <h2 className="font-heading font-semibold">Rekening pembayaran</h2>
           <p className="text-sm text-muted-foreground">
-            Ditampilkan pada halaman tagihan santri. Periksa dua kali — kesalahan
-            di sini membuat uang santri masuk ke rekening yang salah.
+            Ditampilkan pada halaman tagihan santriwati. Periksa dua kali — kesalahan
+            di sini membuat uang santriwati masuk ke rekening yang salah.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
@@ -115,13 +115,13 @@ export function FormPengaturan({
           <p className="text-sm text-muted-foreground">
             Diisi manual sebagai teks bebas (mis. &ldquo;1.200+&rdquo;). Isi
             sesuai keadaan sebenarnya — angka yang dilebih-lebihkan merusak
-            kepercayaan calon santri.
+            kepercayaan calon santriwati.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-4">
           <div className="space-y-2">
-            <Label htmlFor="stat_santri">Santri</Label>
-            <Input id="stat_santri" name="stat_santri" defaultValue={statistik.santri ?? ""} />
+            <Label htmlFor="stat_santri">Santriwati</Label>
+            <Input id="stat_santri" name="stat_santri" defaultValue={statistik.santriwati ?? ""} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="stat_pengajar">Pengajar</Label>

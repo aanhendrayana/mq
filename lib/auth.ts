@@ -45,7 +45,7 @@ export async function wajibMasuk(tujuan?: string): Promise<PenggunaAktif> {
 
 /**
  * Wajib punya salah satu peran. Kalau perannya tidak cocok, dialihkan ke
- * beranda perannya sendiri — bukan ditampilkan 403 — supaya santri yang
+ * beranda perannya sendiri — bukan ditampilkan 403 — supaya santriwati yang
  * salah membuka /admin tidak melihat bahwa halaman itu ada.
  */
 export async function wajibPeran(...peran: Peran[]): Promise<PenggunaAktif> {

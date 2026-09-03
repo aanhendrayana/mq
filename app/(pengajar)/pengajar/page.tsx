@@ -23,7 +23,7 @@ export default async function PengajarPage() {
   const supabase = await buatKlienServer();
 
   // Admin ikut memakai panel ini; kalau tidak ada filter, admin melihat semua
-  // angkatan, sedangkan ustadz hanya angkatannya sendiri (dijamin RLS).
+  // angkatan, sedangkan ustadzah hanya angkatannya sendiri (dijamin RLS).
   const { data: angkatan } = await supabase
     .from("batches")
     .select("*, courses(judul, jenjang)")
@@ -80,7 +80,7 @@ export default async function PengajarPage() {
                 <dl className="space-y-1.5 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1.5">
                     <Users className="size-3.5" />
-                    {jumlah} dari {b.kuota} santri
+                    {jumlah} dari {b.kuota} santriwati
                   </div>
                   {b.jadwal_ringkas && (
                     <div className="flex items-center gap-1.5">

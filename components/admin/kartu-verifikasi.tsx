@@ -191,7 +191,7 @@ export function KartuVerifikasi({ pesanan }: { pesanan: PesananVerifikasi }) {
         )
       ) : (
         <p className="rounded-lg bg-muted/60 p-3 text-xs text-muted-foreground">
-          Santri belum mengunggah bukti transfer.
+          Santriwati belum mengunggah bukti transfer.
         </p>
       )}
 
@@ -223,7 +223,7 @@ export function KartuVerifikasi({ pesanan }: { pesanan: PesananVerifikasi }) {
           <DialogHeader>
             <DialogTitle>Tolak pembayaran</DialogTitle>
             <DialogDescription>
-              Alasan ini ditampilkan kepada santri di halaman tagihannya, jadi
+              Alasan ini ditampilkan kepada santriwati di halaman tagihannya, jadi
               tulis yang jelas dan bisa ditindaklanjuti.
             </DialogDescription>
           </DialogHeader>

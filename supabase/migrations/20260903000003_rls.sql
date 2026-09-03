@@ -2,7 +2,7 @@
 -- MQ Ummina Online — Row Level Security
 --
 -- Anon key ada di bundel JavaScript dan bisa dibaca siapa saja. RLS adalah
--- satu-satunya yang memisahkan data satu santri dari santri lain. Setiap tabel
+-- satu-satunya yang memisahkan data satu santriwati dari santriwati lain. Setiap tabel
 -- di bawah WAJIB punya `enable row level security`; tabel tanpa policy sama
 -- sekali berarti tertutup untuk anon & authenticated (hanya service_role yang
 -- bisa masuk), dan itu memang perilaku yang diinginkan untuk beberapa tabel.
@@ -38,7 +38,7 @@ create policy "admin baca semua profil"
   on public.profiles for select to authenticated
   using (public.is_admin());
 
-create policy "ustadz baca profil santri bimbingannya"
+create policy "ustadzah baca profil santriwati bimbingannya"
   on public.profiles for select to authenticated
   using (public.membimbing_santri(id));
 
@@ -51,7 +51,7 @@ create policy "admin kelola profil"
   on public.profiles for all to authenticated
   using (public.is_admin()) with check (public.is_admin());
 
--- Halaman kelas publik perlu menampilkan nama & bio ustadz, tapi TIDAK boleh
+-- Halaman kelas publik perlu menampilkan nama & bio ustadzah, tapi TIDAK boleh
 -- membocorkan no_hp / tgl_lahir. Karena RLS bekerja per-baris (bukan per-kolom),
 -- pembatasan kolom dilakukan lewat view berikut.
 create view public.pengajar_publik
@@ -112,7 +112,7 @@ create policy "pelajaran pratinjau bisa dibaca"
     select 1 from public.courses c where c.id = course_id and c.is_published
   ));
 
-create policy "santri terdaftar baca pelajaran"
+create policy "santriwati terdaftar baca pelajaran"
   on public.lessons for select to authenticated
   using (public.sudah_terdaftar(course_id));
 
@@ -155,7 +155,7 @@ create policy "admin kelola angkatan"
   on public.batches for all to authenticated
   using (public.is_admin()) with check (public.is_admin());
 
-create policy "santri baca jadwal angkatannya"
+create policy "santriwati baca jadwal angkatannya"
   on public.sesi_halaqah for select to authenticated
   using (exists (
     select 1 from public.enrollments e
@@ -166,7 +166,7 @@ create policy "pengajar baca jadwal bimbingannya"
   on public.sesi_halaqah for select to authenticated
   using (public.membimbing_batch(batch_id));
 
--- Ustadz boleh menambah/menggeser pertemuan angkatannya sendiri.
+-- Ustadzah boleh menambah/menggeser pertemuan angkatannya sendiri.
 create policy "pengajar kelola jadwal bimbingannya"
   on public.sesi_halaqah for all to authenticated
   using (public.membimbing_batch(batch_id))
@@ -175,10 +175,10 @@ create policy "pengajar kelola jadwal bimbingannya"
 -- ---------------------------------------------------------------------
 -- enrollments
 --
--- Tidak ada policy INSERT/UPDATE untuk santri: akses kelas hanya lahir dari
+-- Tidak ada policy INSERT/UPDATE untuk santriwati: akses kelas hanya lahir dari
 -- fungsi setujui_pesanan() yang dijalankan admin.
 -- ---------------------------------------------------------------------
-create policy "santri baca pendaftarannya"
+create policy "santriwati baca pendaftarannya"
   on public.enrollments for select to authenticated
   using (santri_id = auth.uid());
 
@@ -193,11 +193,11 @@ create policy "admin kelola pendaftaran"
 -- ---------------------------------------------------------------------
 -- orders
 --
--- Sengaja tanpa policy INSERT/UPDATE untuk santri. Membuat pesanan lewat
--- buat_pesanan(), mengunggah bukti lewat unggah_bukti(). Kalau santri boleh
+-- Sengaja tanpa policy INSERT/UPDATE untuk santriwati. Membuat pesanan lewat
+-- buat_pesanan(), mengunggah bukti lewat unggah_bukti(). Kalau santriwati boleh
 -- INSERT langsung, dia bisa menulis harga sendiri.
 -- ---------------------------------------------------------------------
-create policy "santri baca pesanannya"
+create policy "santriwati baca pesanannya"
   on public.orders for select to authenticated
   using (santri_id = auth.uid());
 
@@ -208,27 +208,27 @@ create policy "admin kelola pesanan"
 -- ---------------------------------------------------------------------
 -- progres_pelajaran
 -- ---------------------------------------------------------------------
-create policy "santri baca progresnya"
+create policy "santriwati baca progresnya"
   on public.progres_pelajaran for select to authenticated
   using (santri_id = auth.uid());
 
-create policy "santri catat progresnya"
+create policy "santriwati catat progresnya"
   on public.progres_pelajaran for insert to authenticated
   with check (santri_id = auth.uid() and public.sudah_terdaftar(course_id));
 
-create policy "santri ubah progresnya"
+create policy "santriwati ubah progresnya"
   on public.progres_pelajaran for update to authenticated
   using (santri_id = auth.uid())
   with check (santri_id = auth.uid() and public.sudah_terdaftar(course_id));
 
-create policy "pengajar & admin baca progres santri"
+create policy "pengajar & admin baca progres santriwati"
   on public.progres_pelajaran for select to authenticated
   using (public.membimbing_santri(santri_id));
 
 -- ---------------------------------------------------------------------
 -- kehadiran
 -- ---------------------------------------------------------------------
-create policy "santri baca kehadirannya"
+create policy "santriwati baca kehadirannya"
   on public.kehadiran for select to authenticated
   using (santri_id = auth.uid());
 
@@ -240,7 +240,7 @@ create policy "pengajar kelola kehadiran sesinya"
 -- ---------------------------------------------------------------------
 -- penilaian_setoran
 -- ---------------------------------------------------------------------
-create policy "santri baca nilainya"
+create policy "santriwati baca nilainya"
   on public.penilaian_setoran for select to authenticated
   using (santri_id = auth.uid());
 
@@ -252,7 +252,7 @@ create policy "pengajar kelola nilai bimbingannya"
 -- ---------------------------------------------------------------------
 -- hafalan
 -- ---------------------------------------------------------------------
-create policy "santri baca hafalannya"
+create policy "santriwati baca hafalannya"
   on public.hafalan for select to authenticated
   using (santri_id = auth.uid());
 
@@ -267,7 +267,7 @@ create policy "pengajar kelola hafalan bimbingannya"
 -- Verifikasi publik TIDAK lewat tabel ini, melainkan fungsi cek_sertifikat(),
 -- supaya token orang lain tidak bisa dipanen dengan `select * from sertifikat`.
 -- ---------------------------------------------------------------------
-create policy "santri baca sertifikatnya"
+create policy "santriwati baca sertifikatnya"
   on public.sertifikat for select to authenticated
   using (santri_id = auth.uid());
 

@@ -13,7 +13,6 @@ const skema = z.object({
     .trim()
     .regex(/^(\+?62|0)[0-9]{8,14}$/, "Nomor HP tidak valid. Contoh: 081234567890."),
   kota: z.string().trim().max(80).optional(),
-  jenis_kelamin: z.enum(["L", "P"]).optional(),
   tgl_lahir: z.string().optional(),
 });
 
@@ -25,7 +24,6 @@ export async function simpanProfilAction(
     nama: formData.get("nama"),
     no_hp: formData.get("no_hp"),
     kota: formData.get("kota") || undefined,
-    jenis_kelamin: formData.get("jenis_kelamin") || undefined,
     tgl_lahir: formData.get("tgl_lahir") || undefined,
   });
   if (!hasil.success) return { pesan: hasil.error.issues[0].message };
@@ -44,7 +42,6 @@ export async function simpanProfilAction(
       nama: hasil.data.nama,
       no_hp: hasil.data.no_hp,
       kota: hasil.data.kota ?? null,
-      jenis_kelamin: hasil.data.jenis_kelamin ?? null,
       tgl_lahir: hasil.data.tgl_lahir || null,
     })
     .eq("id", user.id);

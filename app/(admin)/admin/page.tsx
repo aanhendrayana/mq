@@ -69,7 +69,7 @@ export default async function AdminBerandaPage() {
       nilai: rupiah(pemasukan),
       keterangan: `${(lunasBulanIni ?? []).length} pembayaran lunas`,
     },
-    { ikon: Users, label: "Santri terdaftar", nilai: String(totalSantri ?? 0), keterangan: "akun santri" },
+    { ikon: Users, label: "Santriwati terdaftar", nilai: String(totalSantri ?? 0), keterangan: "akun santriwati" },
     { ikon: BookOpen, label: "Kelas terbit", nilai: String(kelasTerbit ?? 0), keterangan: "tampil di katalog" },
     { ikon: Award, label: "Sertifikat terbit", nilai: String(sertifikatTerbit ?? 0), keterangan: "sejak awal" },
   ];

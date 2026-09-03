@@ -145,7 +145,7 @@ export function DialogSesi({
               placeholder="https://meet.google.com/abc-defg-hij"
             />
             <p className="text-xs text-muted-foreground">
-              Tautan baru terlihat santri 15 menit sebelum pertemuan dimulai.
+              Tautan baru terlihat santriwati 15 menit sebelum pertemuan dimulai.
             </p>
           </div>
 

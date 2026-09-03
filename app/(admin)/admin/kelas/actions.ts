@@ -255,5 +255,5 @@ export async function hapusPelajaranAction(
   if (error) return { pesan: error.message };
 
   revalidatePath(`/admin/kelas/${courseId}`);
-  return { sukses: "Pelajaran dihapus. Progres santri pada pelajaran ini ikut terhapus." };
+  return { sukses: "Pelajaran dihapus. Progres santriwati pada pelajaran ini ikut terhapus." };
 }

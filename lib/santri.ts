@@ -9,10 +9,10 @@ export type KelasSaya = Enrollment & {
 };
 
 /**
- * Kelas yang diikuti seorang santri beserta progresnya.
+ * Kelas yang diikuti seorang santriwati beserta progresnya.
  *
  * Jumlah pelajaran & progres diambil dengan dua query agregat, bukan satu query
- * per kelas, agar tidak menjadi masalah N+1 saat santri mengikuti banyak kelas.
+ * per kelas, agar tidak menjadi masalah N+1 saat santriwati mengikuti banyak kelas.
  */
 export async function kelasSaya(santriId: string): Promise<KelasSaya[]> {
   const supabase = await buatKlienServer();

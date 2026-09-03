@@ -7,13 +7,13 @@ import { wajibAdmin } from "@/lib/auth";
 export type HasilSertifikat = { pesan?: string; sukses?: string } | undefined;
 
 /**
- * Menerbitkan sertifikat untuk seorang santri pada sebuah kelas.
+ * Menerbitkan sertifikat untuk seorang santriwati pada sebuah kelas.
  *
  * Syarat kelulusan diperiksa di dalam fungsi database `terbitkan_sertifikat()`,
  * bukan di sini — supaya angka yang dipakai memutuskan sama persis dengan yang
- * ditampilkan di rapor santri.
+ * ditampilkan di rapor santriwati.
  *
- * `paksa` melewati pemeriksaan itu. Disediakan untuk kasus nyata seperti santri
+ * `paksa` melewati pemeriksaan itu. Disediakan untuk kasus nyata seperti santriwati
  * pindahan yang setorannya dinilai di luar sistem, dan sengaja butuh tindakan
  * terpisah agar tidak terjadi karena kelalaian.
  */
@@ -33,7 +33,7 @@ export async function terbitkanSertifikatAction(
 
   if (error) {
     if (error.code === "23505") {
-      return { pesan: "Santri ini sudah punya sertifikat untuk kelas tersebut." };
+      return { pesan: "Santriwati ini sudah punya sertifikat untuk kelas tersebut." };
     }
     return { pesan: error.message };
   }

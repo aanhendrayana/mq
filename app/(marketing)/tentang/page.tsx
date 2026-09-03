@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { BookOpenCheck, HeartHandshake, Target, Users } from "lucide-react";
+import { BookOpenCheck, HeartHandshake, ShieldCheck, Target, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { buatKlienServer } from "@/lib/supabase/server";
+import { ambilPengasuh } from "@/lib/pengaturan";
 import { inisial } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Tentang Kami",
   description:
-    "Madrasah Qur'an Ummina membimbing pembelajaran Al-Qur'an secara daring: materi video terstruktur dipadukan halaqah setoran bersama ustadz.",
+    "Madrasah Qur'an daring khusus muslimah. Materi video terstruktur dipadukan halaqah setoran bersama ustadzah pembimbing.",
 };
 
 const NILAI = [
@@ -19,27 +20,32 @@ const NILAI = [
   },
   {
     ikon: Users,
-    judul: "Setiap santri didengarkan",
+    judul: "Setiap santriwati didengarkan",
     isi: "Kesalahan makhraj tidak bisa ditemukan lewat video. Karena itu setiap kelas punya halaqah setoran, dan setiap angkatan dibatasi jumlahnya.",
   },
   {
     ikon: HeartHandshake,
     judul: "Tidak ada yang terlambat memulai",
-    isi: "Banyak santri kami mulai belajar di usia 40, 50, bahkan 60 tahun. Kelas dirancang agar tidak ada yang merasa malu untuk bertanya.",
+    isi: "Banyak santriwati kami mulai belajar di usia 40, 50, bahkan 60 tahun. Kelas dirancang agar tidak ada yang merasa malu untuk bertanya.",
+  },
+  {
+    ikon: ShieldCheck,
+    judul: "Ruang belajar yang menjaga",
+    isi: "Seluruh santriwati dan pengajarnya muslimah. Tidak ada laki-laki di kelas maupun di halaqah, sehingga Anda bisa membaca sekeras yang diperlukan tanpa ragu.",
   },
   {
     ikon: Target,
     judul: "Kemajuan yang bisa dilihat",
-    isi: "Makhraj, tajwid, kelancaran, dan adab dinilai tiap pertemuan, lalu dirangkum dalam rapor. Santri tahu persis di mana letak perbaikannya.",
+    isi: "Makhraj, tajwid, kelancaran, dan adab dinilai tiap pertemuan, lalu dirangkum dalam rapor. Santriwati tahu persis di mana letak perbaikannya.",
   },
 ];
 
 export default async function TentangPage() {
   const supabase = await buatKlienServer();
-  const { data: pengajar } = await supabase
-    .from("pengajar_publik")
-    .select("*")
-    .limit(12);
+  const [{ data: pengajar }, pengasuh] = await Promise.all([
+    supabase.from("pengajar_publik").select("*").limit(12),
+    ambilPengasuh(),
+  ]);
 
   return (
     <>
@@ -52,9 +58,9 @@ export default async function TentangPage() {
             Madrasah Qur&apos;an Ummina
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-pretty text-muted-foreground">
-            Kami membimbing orang dewasa dan anak-anak membaca Al-Qur&apos;an
-            dengan benar — dari yang belum mengenal huruf hingga yang bersiap
-            mengajar orang lain.
+            Madrasah Qur&apos;an daring <strong className="font-semibold text-foreground">khusus
+            muslimah</strong>. Kami membimbing dari yang belum mengenal huruf
+            hingga yang bersiap menjadi ustadzah pengajar.
           </p>
         </div>
       </section>
@@ -80,7 +86,15 @@ export default async function TentangPage() {
             Karena itu setiap kelas di Madrasah Qur&apos;an Ummina menggabungkan
             dua hal: materi video yang bisa Anda ulang sesuka hati di rumah, dan
             halaqah setoran terjadwal tempat bacaan Anda benar-benar dikoreksi
-            oleh ustadz.
+            oleh ustadzah.
+          </p>
+          <p>
+            Dan kami memilih menjadi madrasah khusus muslimah bukan sekadar
+            sebagai aturan, melainkan karena itu yang membuat belajar jadi
+            mungkin. Banyak muslimah sungkan mengeraskan bacaannya bila ada
+            laki-laki yang mendengar — padahal tanpa mengeraskan bacaan,
+            kesalahannya tidak akan pernah ketahuan. Di sini seluruh santriwati
+            dan pengajarnya perempuan, jadi tidak ada alasan untuk menahan suara.
           </p>
         </div>
       </section>
@@ -102,9 +116,31 @@ export default async function TentangPage() {
         </div>
       </section>
 
+      {pengasuh && (
+        <section className="mx-auto max-w-5xl px-4 pt-16">
+          <h2 className="font-heading text-2xl font-bold">Pengasuh madrasah</h2>
+          <Card className="mt-6 flex-col gap-5 p-7 sm:flex-row sm:items-start">
+            <span className="grid size-20 shrink-0 place-items-center rounded-full bg-primary/10 font-heading text-2xl font-bold text-primary">
+              {inisial(pengasuh.nama.replace(/^Ustadzah\s+/i, ""))}
+            </span>
+            <div className="min-w-0">
+              <h3 className="font-heading text-xl font-bold">{pengasuh.nama}</h3>
+              {pengasuh.peran && (
+                <p className="mt-0.5 text-sm font-medium text-primary">{pengasuh.peran}</p>
+              )}
+              {pengasuh.bio && (
+                <p className="mt-3 leading-relaxed text-pretty text-muted-foreground">
+                  {pengasuh.bio}
+                </p>
+              )}
+            </div>
+          </Card>
+        </section>
+      )}
+
       {pengajar && pengajar.length > 0 && (
         <section className="mx-auto max-w-5xl px-4 py-16">
-          <h2 className="font-heading text-2xl font-bold">Ustadz pembimbing</h2>
+          <h2 className="font-heading text-2xl font-bold">Ustadzah pembimbing</h2>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {pengajar.map((u) => (
               <Card key={u.id} className="flex-row items-start gap-4 p-5">

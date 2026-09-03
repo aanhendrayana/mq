@@ -72,7 +72,7 @@ export default async function AdminSertifikatPage() {
       <h2 className="font-heading mb-3 text-lg font-semibold">Calon penerima</h2>
       {urut.length === 0 ? (
         <Card className="mb-10 p-8 text-center text-sm text-muted-foreground">
-          Semua santri yang terdaftar sudah menerima sertifikatnya.
+          Semua santriwati yang terdaftar sudah menerima sertifikatnya.
         </Card>
       ) : (
         <div className="mb-10 space-y-2">
@@ -105,7 +105,7 @@ export default async function AdminSertifikatPage() {
                 <TombolTerbitkan
                   santriId={e.santri_id}
                   courseId={e.course_id}
-                  namaSantri={e.profiles?.nama ?? "Santri ini"}
+                  namaSantri={e.profiles?.nama ?? "Santriwati ini"}
                   memenuhiSyarat={lulus}
                 />
               </Card>

@@ -88,7 +88,7 @@ export default async function DetailBatchPage({
       <h2 className="font-heading mb-3 text-lg font-semibold">Pertemuan</h2>
       {!sesi || sesi.length === 0 ? (
         <Card className="mb-10 p-8 text-center text-sm text-muted-foreground">
-          Belum ada pertemuan. Tambahkan pertemuan pertama agar santri melihat
+          Belum ada pertemuan. Tambahkan pertemuan pertama agar santriwati melihat
           jadwalnya di dasbor mereka.
         </Card>
       ) : (
@@ -141,10 +141,10 @@ export default async function DetailBatchPage({
         </div>
       )}
 
-      {/* -------------------------------------------------------------- Santri */}
+      {/* -------------------------------------------------------------- Santriwati */}
       <h2 className="font-heading mb-3 flex items-center gap-2 text-lg font-semibold">
         <Users className="size-5" />
-        Santri ({enroll?.length ?? 0} dari {batch.kuota})
+        Santriwati ({enroll?.length ?? 0} dari {batch.kuota})
       </h2>
 
       <Card className="p-0">
@@ -162,7 +162,7 @@ export default async function DetailBatchPage({
               {(enroll ?? []).length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="py-10 text-center text-muted-foreground">
-                    Belum ada santri di angkatan ini.
+                    Belum ada santriwati di angkatan ini.
                   </TableCell>
                 </TableRow>
               ) : (

@@ -45,9 +45,9 @@ export async function simpanBatchAction(
   const supabase = await buatKlienServer();
 
   if (id) {
-    // Kelas sebuah angkatan tidak boleh berpindah setelah ada santri di
+    // Kelas sebuah angkatan tidak boleh berpindah setelah ada santriwati di
     // dalamnya: FK gabungan (batch_id, course_id) pada `enrollments` akan
-    // menolaknya, dan diam-diam memindahkan santri juga bukan yang diinginkan.
+    // menolaknya, dan diam-diam memindahkan santriwati juga bukan yang diinginkan.
     const { count } = await supabase
       .from("enrollments")
       .select("id", { count: "exact", head: true })
@@ -61,7 +61,7 @@ export async function simpanBatchAction(
 
     if ((count ?? 0) > 0 && lama && lama.course_id !== d.course_id) {
       return {
-        pesan: `Angkatan ini sudah berisi ${count} santri, jadi kelasnya tidak bisa diganti.`,
+        pesan: `Angkatan ini sudah berisi ${count} santriwati, jadi kelasnya tidak bisa diganti.`,
       };
     }
   }
@@ -78,9 +78,9 @@ export async function simpanBatchAction(
 }
 
 /**
- * Menempatkan seorang santri ke sebuah angkatan.
+ * Menempatkan seorang santriwati ke sebuah angkatan.
  *
- * Diperlukan ketika santri mendaftar sebelum angkatannya dibuka, atau ketika
+ * Diperlukan ketika santriwati mendaftar sebelum angkatannya dibuka, atau ketika
  * ia perlu dipindahkan (mis. jadwalnya bentrok).
  */
 export async function tempatkanSantriAction(
@@ -118,5 +118,5 @@ export async function tempatkanSantriAction(
 
   revalidatePath("/admin/batch");
   revalidatePath("/belajar/jadwal");
-  return { sukses: batchId ? "Santri ditempatkan." : "Santri dikeluarkan dari angkatan." };
+  return { sukses: batchId ? "Santriwati ditempatkan." : "Santriwati dikeluarkan dari angkatan." };
 }

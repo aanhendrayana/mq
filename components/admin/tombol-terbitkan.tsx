@@ -69,7 +69,7 @@ export function TombolTerbitkan({
             <AlertDescription>
               Sertifikat yang terbit dapat diverifikasi publik dan menjadi
               pernyataan resmi madrasah. Terbitkan manual hanya bila
-              penilaiannya memang dilakukan di luar sistem — misalnya santri
+              penilaiannya memang dilakukan di luar sistem — misalnya santriwati
               pindahan yang sudah ditashih langsung.
             </AlertDescription>
           </Alert>

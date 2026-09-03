@@ -21,8 +21,8 @@ export const metadata: Metadata = { title: "Pengguna" };
 
 const SARINGAN = [
   { kunci: "semua", label: "Semua" },
-  { kunci: "santri", label: "Santri" },
-  { kunci: "ustadz", label: "Ustadz" },
+  { kunci: "santri", label: "Santriwati" },
+  { kunci: "ustadz", label: "Ustadzah" },
   { kunci: "admin", label: "Admin" },
 ];
 
@@ -45,7 +45,7 @@ export default async function AdminPenggunaPage({
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <JudulHalaman
         judul="Pengguna"
-        keterangan="Semua akun terdaftar. Naikkan peran seseorang menjadi ustadz agar bisa membimbing angkatan."
+        keterangan="Semua akun terdaftar. Naikkan peran seseorang menjadi ustadzah agar bisa membimbing angkatan."
       />
 
       <nav className="mb-6 flex flex-wrap gap-2">

@@ -63,7 +63,7 @@ export default async function AdminKelasPage() {
                     )}
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    {k.programs?.nama} · {jumlahPelajaran} pelajaran · {jumlahSantri} santri ·{" "}
+                    {k.programs?.nama} · {jumlahPelajaran} pelajaran · {jumlahSantri} santriwati ·{" "}
                     {rupiah(k.harga)}
                   </p>
                 </div>

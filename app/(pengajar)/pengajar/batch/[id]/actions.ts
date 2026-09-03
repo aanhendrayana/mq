@@ -21,8 +21,8 @@ const skemaSesi = z.object({
  * Menambah atau memperbarui satu pertemuan halaqah.
  *
  * Waktu diterima terpisah (tanggal + jam) dan digabung sebagai waktu Jakarta.
- * Kalau digabung di klien, hasilnya mengikuti zona waktu perangkat ustadz —
- * ustadz yang sedang bepergian bisa menjadwalkan sesi di jam yang salah.
+ * Kalau digabung di klien, hasilnya mengikuti zona waktu perangkat ustadzah —
+ * ustadzah yang sedang bepergian bisa menjadwalkan sesi di jam yang salah.
  */
 export async function simpanSesiAction(
   _sebelumnya: HasilAksi,
@@ -76,14 +76,14 @@ const skemaBaris = z.object({
   nilai_adab: z.coerce.number().int().min(0).max(100),
   materi: z.string().trim().max(300).optional(),
   catatan_ustadz: z.string().trim().max(2000).optional(),
-  /** Kolom nilai dibiarkan kosong bila santri tidak hadir. */
+  /** Kolom nilai dibiarkan kosong bila santriwati tidak hadir. */
   nilai_diisi: z.coerce.boolean().optional(),
 });
 
 /**
- * Menyimpan absensi dan penilaian seluruh santri satu sesi sekaligus.
+ * Menyimpan absensi dan penilaian seluruh santriwati satu sesi sekaligus.
  *
- * Sengaja satu aksi untuk satu sesi (bukan satu aksi per santri): ustadz mengisi
+ * Sengaja satu aksi untuk satu sesi (bukan satu aksi per santri): ustadzah mengisi
  * tabelnya sambil mendengarkan setoran, dan simpan-per-baris akan memicu puluhan
  * permintaan jaringan di tengah halaqah.
  */
@@ -107,7 +107,7 @@ export async function simpanPenilaianAction(
     return { pesan: "Ada nilai yang tidak valid. Nilai harus 0–100." };
   }
   if (tervalidasi.data.length === 0) {
-    return { pesan: "Belum ada santri di angkatan ini." };
+    return { pesan: "Belum ada santriwati di angkatan ini." };
   }
 
   const supabase = await buatKlienServer();
@@ -135,7 +135,7 @@ export async function simpanPenilaianAction(
   );
   if (galatHadir) return { pesan: `Gagal menyimpan absensi: ${galatHadir.message}` };
 
-  // Hanya santri yang benar-benar menyetorkan bacaan yang dinilai. Menyimpan
+  // Hanya santriwati yang benar-benar menyetorkan bacaan yang dinilai. Menyimpan
   // nilai 0 untuk yang tidak hadir akan merusak rata-rata rapornya.
   const dinilai = tervalidasi.data.filter((b) => b.nilai_diisi && b.status === "hadir");
 
@@ -162,6 +162,6 @@ export async function simpanPenilaianAction(
   revalidatePath(`/pengajar/batch/${batchId}/sesi/${sesiId}`);
   revalidatePath("/belajar/rapor");
   return {
-    sukses: `Tersimpan: absensi ${tervalidasi.data.length} santri, penilaian ${dinilai.length} santri.`,
+    sukses: `Tersimpan: absensi ${tervalidasi.data.length} santriwati, penilaian ${dinilai.length} santriwati.`,
   };
 }

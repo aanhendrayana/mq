@@ -12,7 +12,7 @@ export type HasilVerifikasi = { pesan?: string; sukses?: string } | undefined;
  *
  * Pekerjaan sebenarnya ada di fungsi database `setujui_pesanan()`: menandai
  * lunas dan membuka akses kelas harus terjadi dalam satu transaksi, supaya
- * tidak pernah ada santri yang sudah dinyatakan lunas tapi tidak bisa masuk
+ * tidak pernah ada santriwati yang sudah dinyatakan lunas tapi tidak bisa masuk
  * kelas. Fungsi itu juga memeriksa ulang bahwa pemanggilnya admin.
  */
 export async function setujuiPesananAction(
@@ -40,7 +40,7 @@ export async function tolakPesananAction(
   const alasan = String(formData.get("alasan") ?? "").trim();
 
   if (alasan.length < 5) {
-    return { pesan: "Tuliskan alasan penolakan agar santri tahu apa yang harus diperbaiki." };
+    return { pesan: "Tuliskan alasan penolakan agar santriwati tahu apa yang harus diperbaiki." };
   }
 
   const supabase = await buatKlienServer();
@@ -51,7 +51,7 @@ export async function tolakPesananAction(
   if (error) return { pesan: error.message };
 
   revalidatePath("/admin/pembayaran");
-  return { sukses: "Pembayaran ditolak. Santri dapat mengunggah ulang buktinya." };
+  return { sukses: "Pembayaran ditolak. Santriwati dapat mengunggah ulang buktinya." };
 }
 
 /**

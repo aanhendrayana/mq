@@ -71,14 +71,14 @@ grant execute on all functions in schema uji to public;
 -- Pemeran uji
 --
 -- UUID hanya boleh memuat digit heksadesimal (0-9, a-f), jadi penanda
--- perannya memakai huruf yang sah: a=admin, b/c=ustadz, d/e=santri,
+-- perannya memakai huruf yang sah: a=admin, b/c=ustadzah, d/e=santriwati,
 -- f0..f7 = data kelas.
 -- ---------------------------------------------------------------------
 --   admin    00000000-0000-4000-8000-00000000000a
---   ustadz A 00000000-0000-4000-8000-00000000000b
---   ustadz B 00000000-0000-4000-8000-00000000000c
---   santri A 00000000-0000-4000-8000-00000000000d
---   santri B 00000000-0000-4000-8000-00000000000e
+--   ustadzah A 00000000-0000-4000-8000-00000000000b
+--   ustadzah B 00000000-0000-4000-8000-00000000000c
+--   santriwati A 00000000-0000-4000-8000-00000000000d
+--   santriwati B 00000000-0000-4000-8000-00000000000e
 
 select uji.jadi_super();
 
@@ -97,10 +97,10 @@ begin
          now(), now()
   from (values
     ('00000000-0000-4000-8000-00000000000a'::uuid, 'admin@uji.test',   'Admin Uji'),
-    ('00000000-0000-4000-8000-00000000000b'::uuid, 'ustadza@uji.test', 'Ustadz A'),
-    ('00000000-0000-4000-8000-00000000000c'::uuid, 'ustadzb@uji.test', 'Ustadz B'),
-    ('00000000-0000-4000-8000-00000000000d'::uuid, 'santria@uji.test', 'Santri A'),
-    ('00000000-0000-4000-8000-00000000000e'::uuid, 'santrib@uji.test', 'Santri B')
+    ('00000000-0000-4000-8000-00000000000b'::uuid, 'ustadza@uji.test', 'Ustadzah A'),
+    ('00000000-0000-4000-8000-00000000000c'::uuid, 'ustadzb@uji.test', 'Ustadzah B'),
+    ('00000000-0000-4000-8000-00000000000d'::uuid, 'santria@uji.test', 'Santriwati A'),
+    ('00000000-0000-4000-8000-00000000000e'::uuid, 'santrib@uji.test', 'Santriwati B')
   ) as x(id, email, nama);
 
   update public.profiles set peran = 'admin'
@@ -123,13 +123,13 @@ begin
 
   select count(*) into v_jml from public.profiles
    where id = '00000000-0000-4000-8000-00000000000d'
-     and nama = 'Santri A' and peran = 'santri' and no_hp = '081234567890';
+     and nama = 'Santriwati A' and peran = 'santri' and no_hp = '081234567890';
   perform uji.periksa(
-    'pendaftar baru selalu berperan santri, nama & HP terbawa dari metadata',
+    'pendaftar baru selalu berperan santriwati, nama & HP terbawa dari metadata',
     v_jml = 1);
 end $$;
 
--- Data uji: 1 kelas, 1 bab, 2 pelajaran (1 pratinjau), 2 angkatan beda ustadz
+-- Data uji: 1 kelas, 1 bab, 2 pelajaran (1 pratinjau), 2 angkatan beda ustadzah
 do $$
 begin
   insert into public.programs (id, slug, nama)
@@ -158,9 +158,9 @@ begin
   insert into public.batches (id, course_id, nama, ustadz_id, kuota, status)
   values
     ('00000000-0000-4000-8000-0000000000f5', '00000000-0000-4000-8000-0000000000f1',
-     'Angkatan Ustadz A', '00000000-0000-4000-8000-00000000000b', 10, 'pendaftaran'),
+     'Angkatan Ustadzah A', '00000000-0000-4000-8000-00000000000b', 10, 'pendaftaran'),
     ('00000000-0000-4000-8000-0000000000f6', '00000000-0000-4000-8000-0000000000f1',
-     'Angkatan Ustadz B', '00000000-0000-4000-8000-00000000000c', 10, 'pendaftaran');
+     'Angkatan Ustadzah B', '00000000-0000-4000-8000-00000000000c', 10, 'pendaftaran');
 end $$;
 
 -- =====================================================================
@@ -209,7 +209,7 @@ end $$;
 
 -- =====================================================================
 \echo ''
-\echo '=== 2. Santri yang belum membeli ==='
+\echo '=== 2. Santriwati yang belum membeli ==='
 -- =====================================================================
 do $$
 declare v_jml int; v_peran text;
@@ -218,7 +218,7 @@ begin
 
   select count(*) into v_jml from public.lessons
    where course_id = '00000000-0000-4000-8000-0000000000f1';
-  perform uji.periksa('santri belum bayar hanya melihat pelajaran pratinjau', v_jml = 1);
+  perform uji.periksa('santriwati belum bayar hanya melihat pelajaran pratinjau', v_jml = 1);
 
   begin
     insert into public.progres_pelajaran (santri_id, lesson_id, course_id)
@@ -235,7 +235,7 @@ begin
   select peran::text into v_peran from public.profiles
    where id = '00000000-0000-4000-8000-00000000000d';
   perform uji.periksa(
-    'santri TIDAK bisa mengangkat dirinya menjadi admin', v_peran = 'santri');
+    'santriwati TIDAK bisa mengangkat dirinya menjadi admin', v_peran = 'santri');
 end $$;
 
 -- =====================================================================
@@ -269,13 +269,13 @@ begin
 
   update public.orders set status = 'lunas' where id = v_pes.id;
   select count(*) into v_jml from public.orders where id = v_pes.id and status = 'lunas';
-  perform uji.periksa('santri TIDAK bisa menandai pesanannya lunas sendiri', v_jml = 0);
+  perform uji.periksa('santriwati TIDAK bisa menandai pesanannya lunas sendiri', v_jml = 0);
 
   begin
     perform public.setujui_pesanan(v_pes.id);
-    perform uji.periksa('santri memanggil setujui_pesanan() DITOLAK', false);
+    perform uji.periksa('santriwati memanggil setujui_pesanan() DITOLAK', false);
   exception when insufficient_privilege then
-    perform uji.periksa('santri memanggil setujui_pesanan() ditolak', true);
+    perform uji.periksa('santriwati memanggil setujui_pesanan() ditolak', true);
   end;
 
   perform uji.jadi('00000000-0000-4000-8000-00000000000a');
@@ -294,7 +294,7 @@ end $$;
 
 -- =====================================================================
 \echo ''
-\echo '=== 4. Santri yang sudah membeli ==='
+\echo '=== 4. Santriwati yang sudah membeli ==='
 -- =====================================================================
 do $$
 declare v_jml int;
@@ -303,7 +303,7 @@ begin
 
   select count(*) into v_jml from public.lessons
    where course_id = '00000000-0000-4000-8000-0000000000f1';
-  perform uji.periksa('santri yang sudah bayar melihat seluruh pelajaran', v_jml = 2);
+  perform uji.periksa('santriwati yang sudah bayar melihat seluruh pelajaran', v_jml = 2);
 
   select count(*) into v_jml from public.lessons where video_id = 'VIDEORAHASIA';
   perform uji.periksa('video_id pelajaran berbayar kini terbaca', v_jml = 1);
@@ -312,27 +312,27 @@ begin
   values ('00000000-0000-4000-8000-00000000000d',
           '00000000-0000-4000-8000-0000000000f4',
           '00000000-0000-4000-8000-0000000000f1', now());
-  perform uji.periksa('santri bisa mencatat progres kelasnya sendiri', true);
+  perform uji.periksa('santriwati bisa mencatat progres kelasnya sendiri', true);
 
-  -- Santri B belum membeli apa pun.
+  -- Santriwati B belum membeli apa pun.
   perform uji.jadi('00000000-0000-4000-8000-00000000000e');
 
   select count(*) into v_jml from public.progres_pelajaran;
-  perform uji.periksa('santri lain tidak melihat progres santri A', v_jml = 0);
+  perform uji.periksa('santriwati lain tidak melihat progres santriwati A', v_jml = 0);
 
   select count(*) into v_jml from public.orders;
-  perform uji.periksa('santri lain tidak melihat tagihan santri A', v_jml = 0);
+  perform uji.periksa('santriwati lain tidak melihat tagihan santriwati A', v_jml = 0);
 
   select count(*) into v_jml from public.profiles;
-  perform uji.periksa('santri hanya melihat profilnya sendiri', v_jml = 1);
+  perform uji.periksa('santriwati hanya melihat profilnya sendiri', v_jml = 1);
 
   select count(*) into v_jml from public.lessons where video_id = 'VIDEORAHASIA';
-  perform uji.periksa('santri lain tetap tidak melihat video berbayar', v_jml = 0);
+  perform uji.periksa('santriwati lain tetap tidak melihat video berbayar', v_jml = 0);
 end $$;
 
 -- =====================================================================
 \echo ''
-\echo '=== 5. Batas wewenang ustadz ==='
+\echo '=== 5. Batas wewenang ustadzah ==='
 -- =====================================================================
 do $$
 declare v_enr uuid; v_jml int;
@@ -347,12 +347,12 @@ begin
   values ('00000000-0000-4000-8000-0000000000f7',
           '00000000-0000-4000-8000-0000000000f5', 1, 'Pertemuan Uji',
           now() - interval '1 hour');
-  perform uji.periksa('ustadz bisa menjadwalkan pertemuan angkatannya', true);
+  perform uji.periksa('ustadzah bisa menjadwalkan pertemuan angkatannya', true);
 
   insert into public.kehadiran (sesi_id, santri_id, status)
   values ('00000000-0000-4000-8000-0000000000f7',
           '00000000-0000-4000-8000-00000000000d', 'hadir');
-  perform uji.periksa('ustadz bisa mencatat absensi angkatannya', true);
+  perform uji.periksa('ustadzah bisa mencatat absensi angkatannya', true);
 
   insert into public.penilaian_setoran
     (enrollment_id, sesi_id, santri_id, ustadz_id,
@@ -360,16 +360,16 @@ begin
   values (v_enr, '00000000-0000-4000-8000-0000000000f7',
           '00000000-0000-4000-8000-00000000000d',
           '00000000-0000-4000-8000-00000000000b', 80, 85, 75, 90);
-  perform uji.periksa('ustadz pembimbing bisa menilai santrinya', true);
+  perform uji.periksa('ustadzah pembimbing bisa menilai santrinya', true);
 
   select count(*) into v_jml from public.penilaian_setoran where nilai_rata = 82.50;
   perform uji.periksa('kolom nilai_rata dihitung otomatis oleh database', v_jml = 1);
 
-  -- Ustadz B bukan pembimbing santri A.
+  -- Ustadzah B bukan pembimbing santriwati A.
   perform uji.jadi('00000000-0000-4000-8000-00000000000c');
 
   select count(*) into v_jml from public.penilaian_setoran;
-  perform uji.periksa('ustadz lain TIDAK melihat nilai santri bimbingan A', v_jml = 0);
+  perform uji.periksa('ustadzah lain TIDAK melihat nilai santriwati bimbingan A', v_jml = 0);
 
   begin
     insert into public.penilaian_setoran
@@ -377,17 +377,17 @@ begin
        nilai_makhraj, nilai_tajwid, nilai_kelancaran, nilai_adab)
     values (v_enr, '00000000-0000-4000-8000-00000000000d',
             '00000000-0000-4000-8000-00000000000c', 10, 10, 10, 10);
-    perform uji.periksa('ustadz lain menilai santri bukan bimbingannya DITOLAK', false);
+    perform uji.periksa('ustadzah lain menilai santriwati bukan bimbingannya DITOLAK', false);
   exception when insufficient_privilege then
-    perform uji.periksa('ustadz lain menilai santri bukan bimbingannya ditolak', true);
+    perform uji.periksa('ustadzah lain menilai santriwati bukan bimbingannya ditolak', true);
   end;
 
   select count(*) into v_jml from public.orders;
-  perform uji.periksa('ustadz tidak bisa membaca data pembayaran', v_jml = 0);
+  perform uji.periksa('ustadzah tidak bisa membaca data pembayaran', v_jml = 0);
 
   perform uji.jadi('00000000-0000-4000-8000-00000000000d');
   select count(*) into v_jml from public.penilaian_setoran;
-  perform uji.periksa('santri melihat nilainya sendiri di rapor', v_jml = 1);
+  perform uji.periksa('santriwati melihat nilainya sendiri di rapor', v_jml = 1);
 end $$;
 
 -- =====================================================================
