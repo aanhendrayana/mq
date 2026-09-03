@@ -36,7 +36,7 @@ export default async function AdminSertifikatPage() {
       .neq("status", "berhenti"),
     supabase
       .from("sertifikat")
-      .select("*, profiles(nama), courses(judul)")
+      .select("*, profiles!sertifikat_santri_id_fkey(nama), courses(judul)")
       .order("tgl_terbit", { ascending: false }),
   ]);
 

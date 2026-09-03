@@ -1,4 +1,3 @@
-import { CalendarDays, GraduationCap, Users } from "lucide-react";
 import { KerangkaDasbor } from "@/components/dasbor/kerangka";
 import { wajibPengajar } from "@/lib/auth";
 
@@ -12,9 +11,9 @@ export default async function PengajarLayout({ children }: LayoutProps<"/pengaja
       nav={[
         {
           item: [
-            { href: "/pengajar", label: "Angkatan Saya", ikon: Users, persis: true },
-            { href: "/pengajar/jadwal", label: "Jadwal Mengajar", ikon: CalendarDays },
-            { href: "/pengajar/santri", label: "Santri Bimbingan", ikon: GraduationCap },
+            { href: "/pengajar", label: "Angkatan Saya", ikon: "users", persis: true },
+            { href: "/pengajar/jadwal", label: "Jadwal Mengajar", ikon: "calendar" },
+            { href: "/pengajar/santri", label: "Santri Bimbingan", ikon: "topi-wisuda" },
           ],
         },
       ]}

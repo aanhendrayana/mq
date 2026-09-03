@@ -1,12 +1,3 @@
-import {
-  Award,
-  BookOpen,
-  LayoutDashboard,
-  Settings,
-  Users,
-  UsersRound,
-  Wallet,
-} from "lucide-react";
 import { KerangkaDasbor } from "@/components/dasbor/kerangka";
 import { wajibAdmin } from "@/lib/auth";
 import { buatKlienServer } from "@/lib/supabase/server";
@@ -28,11 +19,11 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
       nav={[
         {
           item: [
-            { href: "/admin", label: "Ringkasan", ikon: LayoutDashboard, persis: true },
+            { href: "/admin", label: "Ringkasan", ikon: "dasbor", persis: true },
             {
               href: "/admin/pembayaran",
               label: "Pembayaran",
-              ikon: Wallet,
+              ikon: "dompet",
               lencana: count ?? 0,
             },
           ],
@@ -40,16 +31,16 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
         {
           label: "Akademik",
           item: [
-            { href: "/admin/kelas", label: "Kelas & Materi", ikon: BookOpen },
-            { href: "/admin/batch", label: "Angkatan", ikon: UsersRound },
-            { href: "/admin/sertifikat", label: "Sertifikat", ikon: Award },
+            { href: "/admin/kelas", label: "Kelas & Materi", ikon: "book-open" },
+            { href: "/admin/batch", label: "Angkatan", ikon: "users-bulat" },
+            { href: "/admin/sertifikat", label: "Sertifikat", ikon: "award" },
           ],
         },
         {
           label: "Sistem",
           item: [
-            { href: "/admin/pengguna", label: "Pengguna", ikon: Users },
-            { href: "/admin/pengaturan", label: "Pengaturan Situs", ikon: Settings },
+            { href: "/admin/pengguna", label: "Pengguna", ikon: "users" },
+            { href: "/admin/pengaturan", label: "Pengaturan Situs", ikon: "pengaturan" },
           ],
         },
       ]}

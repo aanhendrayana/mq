@@ -15,6 +15,42 @@ tahsin**, dan **sertifikat yang bisa diverifikasi publik**.
 
 ## 1. Menyiapkan Supabase
 
+Ada dua jalur. **Lokal** untuk mengembangkan dan menguji tanpa menyentuh data
+sungguhan; **cloud** untuk produksi.
+
+### 1a. Lokal (disarankan saat mengembangkan)
+
+Supabase lokal berjalan sebagai kumpulan kontainer, jadi butuh runtime
+container. Colima dipilih karena ringan, tanpa GUI, dan tanpa lisensi berbayar.
+
+```bash
+brew install colima docker supabase/tap/supabase
+colima start --cpu 4 --memory 8 --disk 60   # sekali saja; VM-nya menetap
+
+cd 03_mq_ummina_online
+supabase start        # unduhan ~3 GB pada kali pertama
+```
+
+`supabase start` otomatis menjalankan seluruh migrasi di `supabase/migrations/`
+lalu memuat `supabase/seed.sql`. Setelah selesai, perintah itu mencetak
+`API URL`, `anon key`, dan `service_role key` — salin ke `.env.local`.
+
+Perintah harian:
+
+```bash
+supabase status      # lihat URL & kunci kapan saja
+supabase db reset    # bangun ulang dari nol (migrasi + seed)
+supabase stop        # matikan kontainer
+colima stop          # matikan VM-nya sekalian
+```
+
+**Supabase Studio** ada di <http://localhost:54323> — untuk melihat isi tabel
+dan menjalankan SQL. **Inbucket** di <http://localhost:54324> menangkap semua
+email keluar, jadi tautan konfirmasi & atur ulang sandi bisa diuji tanpa
+mengirim email sungguhan.
+
+### 1b. Supabase Cloud (produksi)
+
 1. Buat proyek baru di [supabase.com](https://supabase.com).
 2. Buka **SQL Editor**, lalu jalankan berkas berikut **berurutan**:
 
@@ -26,15 +62,14 @@ tahsin**, dan **sertifikat yang bisa diverifikasi publik**.
    supabase/migrations/20260903000005_pengaturan_awal.sql
    ```
 
-3. (Opsional) Jalankan `supabase/seed.sql` untuk mengisi contoh program, kelas,
+3. (Opsional) Jalankan `supabase/seed.sql` untuk contoh program, kelas,
    kurikulum, FAQ, dan testimoni.
 
-   > Video pada data contoh memakai video uji publik. Ganti dengan video MQ
-   > Ummina yang sebenarnya lewat **/admin/kelas** sebelum dipakai santri.
+Kalau proyeknya sudah di-`supabase link`, langkah 2 bisa diringkas menjadi
+`supabase db push`.
 
-Kalau Supabase CLI terpasang dan proyek sudah di-`link`, langkah 2–3 bisa
-diringkas menjadi `supabase db push` lalu menjalankan `seed.sql`.
-`supabase start` / `db reset` butuh Docker.
+> Video pada data contoh memakai video uji publik. Ganti dengan video MQ Ummina
+> yang sebenarnya lewat **/admin/kelas** sebelum dipakai santri.
 
 ## 2. Menjalankan aplikasi
 
@@ -44,7 +79,8 @@ cp .env.example .env.local     # lalu isi nilainya
 npm run dev                    # http://localhost:3000
 ```
 
-Isi `.env.local` dari **Project Settings → API** di dasbor Supabase:
+Untuk pengembangan lokal, isi `.env.local` dari keluaran `supabase status`.
+Untuk produksi, dari **Project Settings → API** di dasbor Supabase:
 
 | Variabel | Keterangan |
 |---|---|
@@ -147,14 +183,28 @@ npm run lint    # ESLint
 npx tsc --noEmit  # typecheck saja
 ```
 
-## Menguji keamanan RLS (jangan dilewat sebelum rilis)
+## Menguji keamanan RLS
 
-Dengan **anon key** langsung ke Supabase (curl atau SQL Editor sebagai pengguna
-lain), pastikan semuanya ditolak:
+`supabase/uji_rls.sql` menjalankan ~40 pemeriksaan terhadap policy yang
+sesungguhnya. Skrip itu meniru pengguna nyata dengan menyetel peran Postgres
+`anon`/`authenticated` beserta klaim JWT-nya — persis seperti PostgREST saat
+menerima permintaan dari browser — jadi yang diuji policy-nya, bukan logika
+aplikasi. Seluruh isinya dibungkus transaksi yang di-`rollback`, sehingga aman
+dijalankan berulang kali dan tidak meninggalkan data.
 
-- `select * from lessons` → hanya pelajaran `is_preview`
-- `select * from penilaian_setoran` → kosong atau hanya milik sendiri
-- `update orders set status='lunas'` → ditolak
-- membuka objek `bukti-bayar` milik orang lain → 403
-- santri membuka `/admin` dan `/pengajar` → dialihkan oleh `proxy.ts`
-- ustadz A menilai santri di angkatan ustadz B → ditolak policy
+```bash
+psql "$(supabase status -o env | grep '^DB_URL=' | cut -d= -f2- | tr -d '"')" \
+     -v ON_ERROR_STOP=1 -f supabase/uji_rls.sql
+```
+
+Pemeriksaan yang gagal memunculkan exception dan menghentikan skrip di titik
+yang salah. Yang diuji antara lain: tamu tidak melihat `video_id` pelajaran
+berbayar, santri tidak bisa menandai pesanannya lunas sendiri atau mengangkat
+dirinya jadi admin, harga tidak bisa dipalsukan dari klien, ustadz tidak bisa
+menilai santri di luar bimbingannya, dan token sertifikat tidak bisa dipanen
+dari tabel.
+
+Yang **tidak** tercakup skrip ini dan perlu diperiksa manual:
+
+- santri membuka `/admin` dan `/pengajar` → harus dialihkan oleh `proxy.ts`
+- membuka objek `bukti-bayar` milik orang lain lewat URL Storage → harus 403

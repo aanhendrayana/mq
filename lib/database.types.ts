@@ -345,6 +345,7 @@ export type Database = {
         Order,
         [
           Relasi<"orders_santri_id_fkey", "santri_id", "profiles">,
+          Relasi<"orders_diverifikasi_oleh_fkey", "diverifikasi_oleh", "profiles">,
           Relasi<"orders_course_id_fkey", "course_id", "courses">,
           Relasi<"orders_batch_id_fkey", "batch_id", "batches">,
         ]
@@ -358,6 +359,7 @@ export type Database = {
         [
           Relasi<"kehadiran_sesi_id_fkey", "sesi_id", "sesi_halaqah">,
           Relasi<"kehadiran_santri_id_fkey", "santri_id", "profiles">,
+          Relasi<"kehadiran_dicatat_oleh_fkey", "dicatat_oleh", "profiles">,
         ]
       >;
       penilaian_setoran: Tabel<
@@ -371,12 +373,16 @@ export type Database = {
       >;
       hafalan: Tabel<
         Hafalan,
-        [Relasi<"hafalan_santri_id_fkey", "santri_id", "profiles">]
+        [
+          Relasi<"hafalan_santri_id_fkey", "santri_id", "profiles">,
+          Relasi<"hafalan_ustadz_id_fkey", "ustadz_id", "profiles">,
+        ]
       >;
       sertifikat: Tabel<
         Sertifikat,
         [
           Relasi<"sertifikat_santri_id_fkey", "santri_id", "profiles">,
+          Relasi<"sertifikat_diterbitkan_oleh_fkey", "diterbitkan_oleh", "profiles">,
           Relasi<"sertifikat_course_id_fkey", "course_id", "courses">,
           Relasi<"sertifikat_batch_id_fkey", "batch_id", "batches">,
         ]

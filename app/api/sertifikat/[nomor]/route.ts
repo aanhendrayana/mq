@@ -25,7 +25,9 @@ export async function GET(
   const supabase = await buatKlienServer();
   const { data } = await supabase
     .from("sertifikat")
-    .select("*, profiles(nama), courses(judul, jenjang)")
+    // `sertifikat` punya dua FK ke profiles (santri_id & diterbitkan_oleh),
+    // jadi nama FK-nya harus disebut agar PostgREST tidak menolak ambigu.
+    .select("*, profiles!sertifikat_santri_id_fkey(nama), courses(judul, jenjang)")
     .eq("nomor", nomorAsli)
     .maybeSingle();
 

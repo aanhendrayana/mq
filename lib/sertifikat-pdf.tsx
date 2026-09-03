@@ -153,6 +153,19 @@ function tanggalPanjang(iso: string): string {
   }).format(new Date(iso));
 }
 
+/**
+ * Nama program pada lembar sertifikat.
+ *
+ * Jenjang hanya diimbuhkan bila belum termuat di judul kelas — tanpa ini,
+ * "Tahsin Dasar" berjenjang "Dasar" tercetak menjadi "Tahsin Dasar — Dasar".
+ */
+function namaProgram(data: DataSertifikat): string {
+  const jenjang = data.jenjang?.trim();
+  if (!jenjang) return data.judulKelas;
+  const sudahAda = data.judulKelas.toLowerCase().includes(jenjang.toLowerCase());
+  return sudahAda ? data.judulKelas : `${data.judulKelas} — ${jenjang}`;
+}
+
 function Lembar({ data, qr }: { data: DataSertifikat; qr: string }) {
   return (
     <Document
@@ -179,10 +192,7 @@ function Lembar({ data, qr }: { data: DataSertifikat; qr: string }) {
               telah menyelesaikan seluruh rangkaian pembelajaran, mengikuti
               halaqah setoran bacaan, dan dinyatakan lulus pada program
             </Text>
-            <Text style={g.kelas}>
-              {data.judulKelas}
-              {data.jenjang ? ` — ${data.jenjang}` : ""}
-            </Text>
+            <Text style={g.kelas}>{namaProgram(data)}</Text>
 
             <View style={g.barisNilai}>
               {data.predikat && (

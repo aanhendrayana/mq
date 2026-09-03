@@ -34,7 +34,7 @@ export default async function PembayaranPage({
 
   const { data } = await supabase
     .from("orders")
-    .select("*, profiles(nama, no_hp), courses(judul), batches(nama)")
+    .select("*, profiles!orders_santri_id_fkey(nama, no_hp), courses(judul), batches(nama)")
     .in("status", aktif.status)
     .order("dibuat_at", { ascending: false });
 

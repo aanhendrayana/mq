@@ -48,7 +48,7 @@ export default async function AdminBerandaPage() {
       .gte("diverifikasi_at", awalBulan.toISOString()),
     supabase
       .from("orders")
-      .select("*, profiles(nama), courses(judul)")
+      .select("*, profiles!orders_santri_id_fkey(nama), courses(judul)")
       .order("dibuat_at", { ascending: false })
       .limit(8),
   ]);

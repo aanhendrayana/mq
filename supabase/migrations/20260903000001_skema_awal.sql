@@ -112,7 +112,10 @@ create table public.lessons (
   constraint lessons_module_fkey
     foreign key (module_id, course_id)
     references public.modules (id, course_id) on delete cascade,
-  constraint lessons_slug_unik unique (course_id, slug)
+  constraint lessons_slug_unik unique (course_id, slug),
+  -- Dirujuk FK gabungan dari progres_pelajaran. Postgres mewajibkan tabel
+  -- tujuan punya batasan unik yang persis cocok dengan kolom yang dirujuk.
+  constraint lessons_id_course_unik unique (id, course_id)
 );
 comment on column public.lessons.course_id is
   'Denormalisasi dari modules.course_id; dijaga oleh composite FK.';

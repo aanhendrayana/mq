@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -93,5 +92,3 @@ export function KerangkaDasbor({
     </div>
   );
 }
-
-export type { LucideIcon };
