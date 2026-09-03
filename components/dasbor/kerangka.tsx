@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Sheet,
   SheetContent,
@@ -52,13 +53,14 @@ export function KerangkaDasbor({
     <div className="flex min-h-svh flex-col">
       <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b bg-background/90 px-4 backdrop-blur-md">
         <Sheet>
+          {/* className, bukan render={<Button/>} — lihat catatan di
+              components/dasbor/menu-pengguna.tsx soal hydration mismatch. */}
           <SheetTrigger
-            render={
-              <Button variant="ghost" size="icon" aria-label="Buka menu" className="lg:hidden">
-                <Menu className="size-5" />
-              </Button>
-            }
-          />
+            aria-label="Buka menu"
+            className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "lg:hidden")}
+          >
+            <Menu className="size-5" />
+          </SheetTrigger>
           <SheetContent side="left" className="w-72">
             <SheetHeader>
               <SheetTitle className="text-left">

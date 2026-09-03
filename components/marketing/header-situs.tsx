@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { LayoutDashboard, LogOut, Menu, UserRound } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -17,6 +17,7 @@ import { keluarAction } from "@/app/(auth)/actions";
 import { penggunaSekarang } from "@/lib/auth";
 import { BERANDA_PERAN } from "@/lib/konstanta";
 import { inisial } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 const TAUTAN = [
   { href: "/program", label: "Program" },
@@ -76,18 +77,19 @@ export async function HeaderSitus() {
         </div>
 
         <Sheet>
+          {/* className, bukan render={<Button/>}: Base UI sudah merender
+              <button> sendiri, dan menyisipkan Button ke dalam `render`
+              membuat urutan penggabungan prop berbeda antara server dan
+              klien sehingga memicu hydration mismatch. */}
           <SheetTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Buka menu"
-                className="ml-auto md:hidden"
-              >
-                <Menu className="size-5" />
-              </Button>
-            }
-          />
+            aria-label="Buka menu"
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "icon" }),
+              "ml-auto md:hidden",
+            )}
+          >
+            <Menu className="size-5" />
+          </SheetTrigger>
           <SheetContent side="right" className="w-72">
             <SheetHeader>
               <SheetTitle className="text-left">

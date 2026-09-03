@@ -72,6 +72,18 @@ export default async function BerandaPage() {
   const statistik = (pengaturan.statistik ?? {}) as Record<string, string>;
   const alur = (pengaturan.alur_belajar ?? []) as LangkahAlur[];
 
+  // Hanya angka yang benar-benar diisi admin yang ditampilkan.
+  const angkaTampil = (
+    [
+      ["santri", "Santriwati terdaftar"],
+      ["pengajar", "Ustadzah pembimbing"],
+      ["kelas", "Kelas tersedia"],
+      ["kepuasan", "Kepuasan santriwati"],
+    ] as const
+  )
+    .map(([kunci, label]) => [kunci, label, statistik[kunci]?.trim()] as const)
+    .filter(([, , nilai]) => Boolean(nilai));
+
   return (
     <>
       {/* ---------------------------------------------------------------- Hero */}
@@ -112,23 +124,17 @@ export default async function BerandaPage() {
             </div>
           </div>
 
-          {Object.keys(statistik).length > 0 && (
-            <dl className="mx-auto mt-16 grid max-w-3xl grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
-              {[
-                ["santri", "Santriwati terdaftar"],
-                ["pengajar", "Ustadzah pembimbing"],
-                ["kelas", "Kelas tersedia"],
-                ["kepuasan", "Kepuasan santriwati"],
-              ].map(([kunci, label]) =>
-                statistik[kunci] ? (
-                  <div key={kunci} className="text-center">
-                    <dt className="font-heading text-3xl font-bold text-primary">
-                      {statistik[kunci]}
-                    </dt>
-                    <dd className="mt-1 text-sm text-muted-foreground">{label}</dd>
-                  </div>
-                ) : null,
-              )}
+          {angkaTampil.length > 0 && (
+            /* Flex, bukan grid 4 kolom: admin boleh mengosongkan salah satu
+               angka untuk menyembunyikannya, dan grid berkolom tetap akan
+               menyisakan sel kosong yang membuat barisnya timpang. */
+            <dl className="mx-auto mt-16 flex max-w-3xl flex-wrap justify-center gap-x-14 gap-y-8">
+              {angkaTampil.map(([kunci, label, nilai]) => (
+                <div key={kunci} className="min-w-32 text-center">
+                  <dt className="font-heading text-3xl font-bold text-primary">{nilai}</dt>
+                  <dd className="mt-1 text-sm text-muted-foreground">{label}</dd>
+                </div>
+              ))}
             </dl>
           )}
         </div>

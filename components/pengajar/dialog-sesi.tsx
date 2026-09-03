@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -69,13 +69,9 @@ export function DialogSesi({
 
   return (
     <Dialog open={buka} onOpenChange={setBuka}>
-      <DialogTrigger
-        render={
-          <Button size="sm" variant={varian}>
-            {pemicu}
-          </Button>
-        }
-      />
+      <DialogTrigger className={buttonVariants({ size: "sm", variant: varian })}>
+        {pemicu}
+      </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{sesi ? "Ubah Pertemuan" : "Tambah Pertemuan"}</DialogTitle>

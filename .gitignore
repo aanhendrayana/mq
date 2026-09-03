@@ -42,3 +42,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Playwright: binari browser tersimpan di cache global, bukan di repo
+/test-results/
+/playwright-report/

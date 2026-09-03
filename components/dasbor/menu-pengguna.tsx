@@ -2,18 +2,18 @@
 
 import Link from "next/link";
 import { ChevronDown, LayoutDashboard, LogOut, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { keluarAction } from "@/app/(auth)/actions";
 import { inisial } from "@/lib/format";
 import { BERANDA_PERAN } from "@/lib/konstanta";
+import { cn } from "@/lib/utils";
 import type { PenggunaAktif } from "@/lib/auth";
 
 const LABEL_PERAN = {
@@ -24,7 +24,7 @@ const LABEL_PERAN = {
 
 export function MenuPengguna({
   pengguna,
-  /** Tampilkan nama di samping avatar. Dipakai di header situs yang lebih lapang. */
+  /** Tampilkan nama di samping avatar. Dipakai di header yang lebih lapang. */
   tampilkanNama = false,
   /** Sertakan tautan ke dasbor. Tidak perlu bila sudah berada di dalam dasbor. */
   tautanDasbor = false,
@@ -34,51 +34,61 @@ export function MenuPengguna({
   tautanDasbor?: boolean;
 }) {
   const nama = pengguna.profil.nama || "Pengguna";
-  const beranda = BERANDA_PERAN[pengguna.profil.peran];
-
-  const avatar = (
-    <span
-      aria-hidden
-      className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
-    >
-      {inisial(nama)}
-    </span>
-  );
 
   return (
     <DropdownMenu>
+      {/*
+        Gaya tombol diberikan lewat `className`, bukan `render={<Button/>}`.
+        Base UI sudah merender <button> sendiri, dan menyisipkan komponen Button
+        (yang juga Base UI) ke dalam `render` membuat urutan penggabungan prop
+        berbeda antara server dan klien — hasilnya hydration mismatch pada
+        atribut data-slot.
+      */}
       <DropdownMenuTrigger
-        render={
-          tampilkanNama ? (
-            <Button variant="ghost" className="h-10 gap-2 pr-2 pl-1.5">
-              {avatar}
-              {/* Nama dipotong: gelar lengkap seperti "S.Q., Hafidzoh" bisa
-                  sangat panjang dan akan mendorong navigasi keluar layar. */}
-              <span className="hidden max-w-28 truncate text-sm font-medium sm:inline lg:max-w-44">
-                {nama}
-              </span>
-              <ChevronDown className="hidden size-3.5 text-muted-foreground sm:inline" />
-              <span className="sr-only">Menu akun</span>
-            </Button>
-          ) : (
-            <Button variant="ghost" size="icon" aria-label="Menu akun" className="rounded-full">
-              {avatar}
-            </Button>
-          )
-        }
-      />
+        aria-label="Menu akun"
+        className={cn(
+          buttonVariants({ variant: "ghost" }),
+          tampilkanNama ? "h-10 gap-2 pr-2 pl-1.5" : "size-9 rounded-full p-0",
+        )}
+      >
+        <span
+          aria-hidden
+          className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
+        >
+          {inisial(nama)}
+        </span>
+        {tampilkanNama && (
+          <>
+            {/* Nama dipotong: gelar lengkap seperti "S.Q., Hafidzoh" panjang
+                dan akan mendorong navigasi keluar layar. */}
+            <span className="hidden max-w-28 truncate text-sm font-medium sm:inline lg:max-w-44">
+              {nama}
+            </span>
+            <ChevronDown className="hidden size-3.5 text-muted-foreground sm:inline" />
+          </>
+        )}
+      </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-60">
-        <DropdownMenuLabel className="font-normal">
+        {/*
+          Blok identitas ini sengaja <div> biasa, bukan DropdownMenuLabel.
+          DropdownMenuLabel memetakan ke Menu.GroupLabel milik Base UI yang
+          WAJIB berada di dalam Menu.Group — di luar itu ia melempar exception
+          dan menjatuhkan seluruh halaman. Lagi pula ini bukan label sebuah
+          grup, melainkan keterangan akun.
+        */}
+        <div className="px-2 py-1.5">
           <p className="truncate text-sm font-semibold">{nama}</p>
           <p className="truncate text-xs text-muted-foreground">{pengguna.email}</p>
-          <p className="mt-1 text-xs text-primary">{LABEL_PERAN[pengguna.profil.peran]}</p>
-        </DropdownMenuLabel>
+          <p className="mt-1 text-xs text-primary">
+            {LABEL_PERAN[pengguna.profil.peran]}
+          </p>
+        </div>
 
         <DropdownMenuSeparator />
 
         {tautanDasbor && (
-          <DropdownMenuItem render={<Link href={beranda} />}>
+          <DropdownMenuItem render={<Link href={BERANDA_PERAN[pengguna.profil.peran]} />}>
             <LayoutDashboard className="size-4" />
             Dasbor Saya
           </DropdownMenuItem>
