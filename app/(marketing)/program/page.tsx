@@ -4,7 +4,7 @@ import { SearchX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { KartuKelas } from "@/components/marketing/kartu-kelas";
 import { daftarKelas } from "@/lib/kelas";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -17,9 +17,9 @@ export default async function KatalogPage({ searchParams }: PageProps<"/program"
   const { kategori } = await searchParams;
   const terpilih = typeof kategori === "string" ? kategori : undefined;
 
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
   const [{ data: program }, kelas] = await Promise.all([
-    supabase.from("programs").select("*").order("urutan"),
+    db.from("programs").select("*").order("urutan"),
     daftarKelas({ program: terpilih }),
   ]);
 

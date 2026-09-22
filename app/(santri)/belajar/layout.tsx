@@ -1,13 +1,13 @@
 import { KerangkaDasbor } from "@/components/dasbor/kerangka";
 import { wajibMasuk } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 
 export default async function BelajarLayout({ children }: LayoutProps<"/belajar">) {
   const pengguna = await wajibMasuk("/belajar");
 
   // Lencana pada menu Tagihan agar pesanan yang belum dibayar tidak terlupakan.
-  const supabase = await buatKlienServer();
-  const { count } = await supabase
+  const db = await buatKlienServer();
+  const { count } = await db
     .from("orders")
     .select("id", { count: "exact", head: true })
     .eq("santri_id", pengguna.id)

@@ -8,7 +8,7 @@ import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { wajibMasuk } from "@/lib/auth";
 import { kelasSaya } from "@/lib/santri";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { jarakWaktu, tanggalJam } from "@/lib/format";
 import { waktuPermintaan } from "@/lib/waktu";
 
@@ -16,11 +16,11 @@ export const metadata: Metadata = { title: "Kelas Saya" };
 
 export default async function BelajarPage() {
   const pengguna = await wajibMasuk("/belajar");
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
   const [kelas, { data: pesananTertunda }] = await Promise.all([
     kelasSaya(pengguna.id),
-    supabase
+    db
       .from("orders")
       .select("nomor_invoice, status, courses(judul)")
       .eq("santri_id", pengguna.id)
@@ -32,7 +32,7 @@ export default async function BelajarPage() {
   const idBatch = kelas.map((k) => k.batch_id).filter(Boolean) as string[];
   const sekarang = await waktuPermintaan();
   const { data: sesiBerikut } = idBatch.length
-    ? await supabase
+    ? await db
         .from("sesi_halaqah")
         .select("*, batches(nama, course_id)")
         .in("batch_id", idBatch)

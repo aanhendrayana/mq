@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { BookOpenCheck, HeartHandshake, ShieldCheck, Target, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { TautanTombol } from "@/components/ui/tautan-tombol";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { ambilPengasuh } from "@/lib/pengaturan";
 import { inisial } from "@/lib/format";
 
@@ -41,9 +41,9 @@ const NILAI = [
 ];
 
 export default async function TentangPage() {
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
   const [{ data: pengajar }, pengasuh] = await Promise.all([
-    supabase.from("pengajar_publik").select("*").limit(12),
+    db.from("pengajar_publik").select("*").limit(12),
     ambilPengasuh(),
   ]);
 

@@ -6,7 +6,7 @@ import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { JudulHalaman } from "@/components/dasbor/judul-halaman";
 import { TabelPenilaian, type BarisSantri } from "@/components/pengajar/tabel-penilaian";
 import { wajibPengajar } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { tanggalJam } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Absensi & Penilaian" };
@@ -16,9 +16,9 @@ export default async function SesiPage({
 }: PageProps<"/pengajar/batch/[id]/sesi/[sid]">) {
   const { id, sid } = await params;
   await wajibPengajar();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
-  const { data: sesi } = await supabase
+  const { data: sesi } = await db
     .from("sesi_halaqah")
     .select("*, batches(nama, courses(judul))")
     .eq("id", sid)
@@ -26,7 +26,7 @@ export default async function SesiPage({
     .maybeSingle();
   if (!sesi) notFound();
 
-  const { data: enroll } = await supabase
+  const { data: enroll } = await db
     .from("enrollments")
     .select("id, santri_id, profiles(nama)")
     .eq("batch_id", id)
@@ -36,8 +36,8 @@ export default async function SesiPage({
 
   const [{ data: kehadiran }, { data: penilaian }] = idSantri.length
     ? await Promise.all([
-        supabase.from("kehadiran").select("*").eq("sesi_id", sid),
-        supabase.from("penilaian_setoran").select("*").eq("sesi_id", sid),
+        db.from("kehadiran").select("*").eq("sesi_id", sid),
+        db.from("penilaian_setoran").select("*").eq("sesi_id", sid),
       ])
     : [{ data: [] }, { data: [] }];
 

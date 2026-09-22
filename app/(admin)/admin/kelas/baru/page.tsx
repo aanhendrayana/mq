@@ -5,14 +5,14 @@ import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { JudulHalaman } from "@/components/dasbor/judul-halaman";
 import { FormKelas } from "@/components/admin/form-kelas";
 import { wajibAdmin } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 
 export const metadata: Metadata = { title: "Kelas Baru" };
 
 export default async function KelasBaruPage() {
   await wajibAdmin();
-  const supabase = await buatKlienServer();
-  const { data: program } = await supabase.from("programs").select("id, nama").order("urutan");
+  const db = await buatKlienServer();
+  const { data: program } = await db.from("programs").select("id, nama").order("urutan");
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">

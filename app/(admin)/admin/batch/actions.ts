@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { wajibAdmin } from "@/lib/auth";
 
 export type HasilBatch = { pesan?: string; sukses?: string } | undefined;
@@ -42,18 +42,18 @@ export async function simpanBatchAction(
     catatan: d.catatan || null,
   };
 
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
   if (id) {
     // Kelas sebuah angkatan tidak boleh berpindah setelah ada santriwati di
     // dalamnya: FK gabungan (batch_id, course_id) pada `enrollments` akan
     // menolaknya, dan diam-diam memindahkan santriwati juga bukan yang diinginkan.
-    const { count } = await supabase
+    const { count } = await db
       .from("enrollments")
       .select("id", { count: "exact", head: true })
       .eq("batch_id", id);
 
-    const { data: lama } = await supabase
+    const { data: lama } = await db
       .from("batches")
       .select("course_id")
       .eq("id", id)
@@ -67,8 +67,8 @@ export async function simpanBatchAction(
   }
 
   const { error } = id
-    ? await supabase.from("batches").update(isi).eq("id", id)
-    : await supabase.from("batches").insert(isi);
+    ? await db.from("batches").update(isi).eq("id", id)
+    : await db.from("batches").insert(isi);
 
   if (error) return { pesan: error.message };
 
@@ -88,17 +88,17 @@ export async function tempatkanSantriAction(
   batchId: string | null,
 ): Promise<HasilBatch> {
   await wajibAdmin();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
   if (batchId) {
-    const { data: batch } = await supabase
+    const { data: batch } = await db
       .from("batches")
       .select("kuota, course_id")
       .eq("id", batchId)
       .maybeSingle();
     if (!batch) return { pesan: "Angkatan tidak ditemukan." };
 
-    const { count } = await supabase
+    const { count } = await db
       .from("enrollments")
       .select("id", { count: "exact", head: true })
       .eq("batch_id", batchId)
@@ -109,7 +109,7 @@ export async function tempatkanSantriAction(
     }
   }
 
-  const { error } = await supabase
+  const { error } = await db
     .from("enrollments")
     .update({ batch_id: batchId })
     .eq("id", enrollmentId);

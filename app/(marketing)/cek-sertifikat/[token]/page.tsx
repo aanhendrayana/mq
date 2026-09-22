@@ -3,7 +3,7 @@ import { BadgeCheck, ShieldX } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TautanTombol } from "@/components/ui/tautan-tombol";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { tanggal } from "@/lib/format";
 
 export const metadata: Metadata = {
@@ -16,11 +16,11 @@ export default async function HasilVerifikasiPage({
   params,
 }: PageProps<"/cek-sertifikat/[token]">) {
   const { token } = await params;
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
   // Lewat fungsi `cek_sertifikat()`, bukan `select` langsung ke tabel: dengan
   // begitu token milik orang lain tidak bisa dipanen dari tabel sertifikat.
-  const { data } = await supabase.rpc("cek_sertifikat", { p_token: token });
+  const { data } = await db.rpc("cek_sertifikat", { p_token: token });
   const sertifikat = data?.[0];
 
   if (!sertifikat) {

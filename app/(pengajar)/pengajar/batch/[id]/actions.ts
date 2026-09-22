@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 
 export type HasilAksi = { pesan?: string; sukses?: string } | undefined;
 
@@ -37,7 +37,7 @@ export async function simpanSesiAction(
     return { pesan: "Tanggal atau jam tidak valid." };
   }
 
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
   const idSesi = String(formData.get("sesi_id") ?? "");
 
   const isi = {
@@ -51,8 +51,8 @@ export async function simpanSesiAction(
   };
 
   const { error } = idSesi
-    ? await supabase.from("sesi_halaqah").update(isi).eq("id", idSesi)
-    : await supabase.from("sesi_halaqah").insert(isi);
+    ? await db.from("sesi_halaqah").update(isi).eq("id", idSesi)
+    : await db.from("sesi_halaqah").insert(isi);
 
   if (error) {
     if (error.code === "23505") {
@@ -110,20 +110,20 @@ export async function simpanPenilaianAction(
     return { pesan: "Belum ada santriwati di angkatan ini." };
   }
 
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await db.auth.getUser();
   if (!user) return { pesan: "Sesi Anda berakhir." };
 
-  const { data: sesi } = await supabase
+  const { data: sesi } = await db
     .from("sesi_halaqah")
     .select("mulai_at")
     .eq("id", sesiId)
     .maybeSingle();
   const tanggalSesi = sesi ? sesi.mulai_at.slice(0, 10) : new Date().toISOString().slice(0, 10);
 
-  const { error: galatHadir } = await supabase.from("kehadiran").upsert(
+  const { error: galatHadir } = await db.from("kehadiran").upsert(
     tervalidasi.data.map((b) => ({
       sesi_id: sesiId,
       santri_id: b.santri_id,
@@ -140,7 +140,7 @@ export async function simpanPenilaianAction(
   const dinilai = tervalidasi.data.filter((b) => b.nilai_diisi && b.status === "hadir");
 
   if (dinilai.length > 0) {
-    const { error } = await supabase.from("penilaian_setoran").upsert(
+    const { error } = await db.from("penilaian_setoran").upsert(
       dinilai.map((b) => ({
         sesi_id: sesiId,
         enrollment_id: b.enrollment_id,

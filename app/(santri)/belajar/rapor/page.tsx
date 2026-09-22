@@ -15,7 +15,7 @@ import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { GrafikRapor, type TitikRapor } from "@/components/belajar/grafik-rapor";
 import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { wajibMasuk } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { ASPEK_NILAI, predikat } from "@/lib/konstanta";
 import { tanggal } from "@/lib/format";
 import type { PenilaianSetoran, RingkasanCapaian } from "@/lib/database.types";
@@ -29,15 +29,15 @@ function rata(nilai: number[]): number {
 
 export default async function RaporPage() {
   const pengguna = await wajibMasuk();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
-  const { data: enroll } = await supabase
+  const { data: enroll } = await db
     .from("enrollments")
     .select("id, course_id, courses(judul, jenjang)")
     .eq("santri_id", pengguna.id)
     .neq("status", "berhenti");
 
-  const { data: penilaian } = await supabase
+  const { data: penilaian } = await db
     .from("penilaian_setoran")
     .select("*")
     .eq("santri_id", pengguna.id)
@@ -46,7 +46,7 @@ export default async function RaporPage() {
   // Satu panggilan per kelas; jumlah kelas seorang santriwati selalu kecil.
   const capaian = new Map<string, RingkasanCapaian>();
   for (const e of enroll ?? []) {
-    const { data } = await supabase.rpc("ringkasan_capaian", {
+    const { data } = await db.rpc("ringkasan_capaian", {
       p_santri: pengguna.id,
       p_course: e.course_id,
     });

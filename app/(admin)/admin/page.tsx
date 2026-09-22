@@ -5,16 +5,16 @@ import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { JudulHalaman } from "@/components/dasbor/judul-halaman";
 import { StatusPesananBadge } from "@/components/belajar/status-pesanan";
 import { wajibAdmin } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { rupiah, tanggal } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Ringkasan" };
 
 export default async function AdminBerandaPage() {
   await wajibAdmin();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
-  await supabase.rpc("kadaluarsakan_pesanan");
+  await db.rpc("kadaluarsakan_pesanan");
 
   const awalBulan = new Date();
   awalBulan.setDate(1);
@@ -28,25 +28,25 @@ export default async function AdminBerandaPage() {
     { data: lunasBulanIni },
     { data: terbaru },
   ] = await Promise.all([
-    supabase
+    db
       .from("orders")
       .select("id", { count: "exact", head: true })
       .eq("status", "menunggu_verifikasi"),
-    supabase
+    db
       .from("profiles")
       .select("id", { count: "exact", head: true })
       .eq("peran", "santri"),
-    supabase
+    db
       .from("courses")
       .select("id", { count: "exact", head: true })
       .eq("is_published", true),
-    supabase.from("sertifikat").select("id", { count: "exact", head: true }),
-    supabase
+    db.from("sertifikat").select("id", { count: "exact", head: true }),
+    db
       .from("orders")
       .select("total_bayar")
       .eq("status", "lunas")
       .gte("diverifikasi_at", awalBulan.toISOString()),
-    supabase
+    db
       .from("orders")
       .select("*, profiles!orders_santri_id_fkey(nama), courses(judul)")
       .order("dibuat_at", { ascending: false })

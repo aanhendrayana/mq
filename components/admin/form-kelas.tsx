@@ -193,8 +193,7 @@ export function FormKelas({
           placeholder="https://..."
         />
         <p className="text-xs text-muted-foreground">
-          Unggah gambarnya ke bucket <code>materi</code> di Supabase Storage,
-          lalu tempel URL publiknya di sini.
+          Masukkan URL gambar/thumbnail kelas (misal dari CDN atau hosting berkas).
         </p>
       </div>
 

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { wajibMasuk } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { SYARAT_SERTIFIKAT } from "@/lib/konstanta";
 import { tanggal } from "@/lib/format";
 
@@ -13,9 +13,9 @@ export const metadata: Metadata = { title: "Sertifikat" };
 
 export default async function SertifikatPage() {
   const pengguna = await wajibMasuk();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
-  const { data: sertifikat } = await supabase
+  const { data: sertifikat } = await db
     .from("sertifikat")
     .select("*, courses(judul, jenjang)")
     .eq("santri_id", pengguna.id)

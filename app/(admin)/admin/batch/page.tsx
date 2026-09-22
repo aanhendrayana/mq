@@ -7,7 +7,7 @@ import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { DialogBatch } from "@/components/admin/dialog-batch";
 import { TombolTempatkan } from "@/components/admin/penempatan-santri";
 import { wajibAdmin } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { tanggal } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Angkatan" };
@@ -21,17 +21,17 @@ const WARNA_STATUS = {
 
 export default async function AdminBatchPage() {
   await wajibAdmin();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
   const [{ data: batches }, { data: kelas }, { data: pengajar }, { data: enroll }] =
     await Promise.all([
-      supabase
+      db
         .from("batches")
         .select("*, courses(judul), profiles(nama)")
         .order("tgl_mulai", { ascending: false }),
-      supabase.from("courses").select("id, judul").order("urutan"),
-      supabase.from("profiles").select("id, nama").in("peran", ["ustadz", "admin"]).order("nama"),
-      supabase
+      db.from("courses").select("id, judul").order("urutan"),
+      db.from("profiles").select("id, nama").in("peran", ["ustadz", "admin"]).order("nama"),
+      db
         .from("enrollments")
         .select("id, batch_id, course_id, status, profiles(nama)")
         .neq("status", "berhenti"),

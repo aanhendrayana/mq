@@ -7,7 +7,7 @@ import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { KartuVerifikasi, type PesananVerifikasi } from "@/components/admin/kartu-verifikasi";
 import { StatusPesananBadge } from "@/components/belajar/status-pesanan";
 import { wajibAdmin } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { rupiah, tanggal } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { StatusPesanan } from "@/lib/database.types";
@@ -29,10 +29,10 @@ export default async function PembayaranPage({
   const kunci = typeof saring === "string" ? saring : "perlu";
   const aktif = SARINGAN.find((s) => s.kunci === kunci) ?? SARINGAN[0];
 
-  const supabase = await buatKlienServer();
-  await supabase.rpc("kadaluarsakan_pesanan");
+  const db = await buatKlienServer();
+  await db.rpc("kadaluarsakan_pesanan");
 
-  const { data } = await supabase
+  const { data } = await db
     .from("orders")
     .select("*, profiles!orders_santri_id_fkey(nama, no_hp), courses(judul), batches(nama)")
     .in("status", aktif.status)

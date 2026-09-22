@@ -8,7 +8,7 @@ import { JudulHalaman } from "@/components/dasbor/judul-halaman";
 import { FormKelas } from "@/components/admin/form-kelas";
 import { EditorKurikulum, type BabAdmin } from "@/components/admin/editor-kurikulum";
 import { wajibAdmin } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 
 export const metadata: Metadata = { title: "Kelola Kelas" };
 
@@ -17,9 +17,9 @@ export default async function AdminDetailKelasPage({
 }: PageProps<"/admin/kelas/[id]">) {
   const { id } = await params;
   await wajibAdmin();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
-  const { data: kelas } = await supabase
+  const { data: kelas } = await db
     .from("courses")
     .select("*")
     .eq("id", id)
@@ -27,9 +27,9 @@ export default async function AdminDetailKelasPage({
   if (!kelas) notFound();
 
   const [{ data: program }, { data: modul }, { data: pelajaran }] = await Promise.all([
-    supabase.from("programs").select("id, nama").order("urutan"),
-    supabase.from("modules").select("*").eq("course_id", id).order("urutan"),
-    supabase.from("lessons").select("*").eq("course_id", id).order("urutan"),
+    db.from("programs").select("id, nama").order("urutan"),
+    db.from("modules").select("*").eq("course_id", id).order("urutan"),
+    db.from("lessons").select("*").eq("course_id", id).order("urutan"),
   ]);
 
   const bab: BabAdmin[] = (modul ?? []).map((m) => ({

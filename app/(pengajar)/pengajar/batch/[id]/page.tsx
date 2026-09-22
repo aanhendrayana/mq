@@ -15,7 +15,7 @@ import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { JudulHalaman } from "@/components/dasbor/judul-halaman";
 import { DialogSesi } from "@/components/pengajar/dialog-sesi";
 import { wajibPengajar } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { tanggalJam } from "@/lib/format";
 import { waktuPermintaan } from "@/lib/waktu";
 
@@ -26,9 +26,9 @@ export default async function DetailBatchPage({
 }: PageProps<"/pengajar/batch/[id]">) {
   const { id } = await params;
   await wajibPengajar();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
-  const { data: batch } = await supabase
+  const { data: batch } = await db
     .from("batches")
     .select("*, courses(judul, jenjang)")
     .eq("id", id)
@@ -36,16 +36,16 @@ export default async function DetailBatchPage({
   if (!batch) notFound();
 
   const [{ data: enroll }, { data: sesi }] = await Promise.all([
-    supabase
+    db
       .from("enrollments")
       .select("id, santri_id, status, profiles(nama, no_hp, kota)")
       .eq("batch_id", id)
       .neq("status", "berhenti"),
-    supabase.from("sesi_halaqah").select("*").eq("batch_id", id).order("mulai_at"),
+    db.from("sesi_halaqah").select("*").eq("batch_id", id).order("mulai_at"),
   ]);
 
   const { data: kehadiran } = (sesi ?? []).length
-    ? await supabase
+    ? await db
         .from("kehadiran")
         .select("sesi_id, santri_id, status")
         .in(

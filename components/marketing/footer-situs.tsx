@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Mail, MapPin, MessageCircle } from "lucide-react";
 import { Logo } from "@/components/marketing/logo";
 import { ambilKontak } from "@/lib/pengaturan";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { SITUS } from "@/lib/konstanta";
 
 /** Lucide sudah tidak menyediakan ikon merek, jadi digambar sendiri. */
@@ -27,8 +27,8 @@ function IkonInstagram({ className }: { className?: string }) {
 
 export async function FooterSitus() {
   const kontak = await ambilKontak();
-  const supabase = await buatKlienServer();
-  const { data: program } = await supabase
+  const db = await buatKlienServer();
+  const { data: program } = await db
     .from("programs")
     .select("slug, nama")
     .order("urutan");

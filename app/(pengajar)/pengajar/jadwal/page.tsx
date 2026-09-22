@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { wajibPengajar } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { jarakWaktu, tanggalJam } from "@/lib/format";
 import { waktuPermintaan } from "@/lib/waktu";
 
@@ -13,9 +13,9 @@ export const metadata: Metadata = { title: "Jadwal Mengajar" };
 
 export default async function JadwalPengajarPage() {
   await wajibPengajar();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
-  const { data: sesi } = await supabase
+  const { data: sesi } = await db
     .from("sesi_halaqah")
     .select("*, batches(id, nama, courses(judul))")
     .order("mulai_at");

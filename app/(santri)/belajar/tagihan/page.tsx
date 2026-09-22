@@ -5,18 +5,18 @@ import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { StatusPesananBadge } from "@/components/belajar/status-pesanan";
 import { wajibMasuk } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { rupiah, tanggal } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Tagihan" };
 
 export default async function DaftarTagihanPage() {
   const pengguna = await wajibMasuk();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
-  await supabase.rpc("kadaluarsakan_pesanan");
+  await db.rpc("kadaluarsakan_pesanan");
 
-  const { data: pesanan } = await supabase
+  const { data: pesanan } = await db
     .from("orders")
     .select("*, courses(judul, jenjang)")
     .eq("santri_id", pengguna.id)

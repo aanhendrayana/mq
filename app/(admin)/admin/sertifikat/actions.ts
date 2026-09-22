@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { wajibAdmin } from "@/lib/auth";
 
 export type HasilSertifikat = { pesan?: string; sukses?: string } | undefined;
@@ -23,9 +23,9 @@ export async function terbitkanSertifikatAction(
   paksa = false,
 ): Promise<HasilSertifikat> {
   await wajibAdmin();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
-  const { data, error } = await supabase.rpc("terbitkan_sertifikat", {
+  const { data, error } = await db.rpc("terbitkan_sertifikat", {
     p_santri: santriId,
     p_course: courseId,
     p_paksa: paksa,

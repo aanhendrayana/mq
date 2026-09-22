@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { buatPdfSertifikat } from "@/lib/sertifikat-pdf";
 import { ambilPengasuh } from "@/lib/pengaturan";
 
@@ -23,8 +23,8 @@ export async function GET(
   const { nomor } = await params;
   const nomorAsli = decodeURIComponent(nomor).replaceAll("-", "/");
 
-  const supabase = await buatKlienServer();
-  const { data } = await supabase
+  const db = await buatKlienServer();
+  const { data } = await db
     .from("sertifikat")
     // `sertifikat` punya dua FK ke profiles (santri_id & diterbitkan_oleh),
     // jadi nama FK-nya harus disebut agar PostgREST tidak menolak ambigu.

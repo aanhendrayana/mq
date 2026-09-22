@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { wajibAdmin } from "@/lib/auth";
 
 export type HasilPengaturan = { pesan?: string; sukses?: string } | undefined;
@@ -45,9 +45,9 @@ export async function simpanPengaturanAction(
   if (!hasil.success) return { pesan: hasil.error.issues[0].message };
 
   const d = hasil.data;
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
-  const { error } = await supabase.from("pengaturan_situs").upsert(
+  const { error } = await db.from("pengaturan_situs").upsert(
     [
       {
         kunci: "kontak",

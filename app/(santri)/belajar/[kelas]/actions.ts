@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 
 /**
  * Menyimpan posisi tonton dan/atau menandai pelajaran selesai.
@@ -18,20 +18,20 @@ export async function simpanProgresAction(input: {
   detik: number;
   selesai: boolean;
 }): Promise<{ ok: boolean; pesan?: string }> {
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await db.auth.getUser();
   if (!user) return { ok: false, pesan: "Sesi berakhir." };
 
-  const { data: adaSebelumnya } = await supabase
+  const { data: adaSebelumnya } = await db
     .from("progres_pelajaran")
     .select("id, selesai_at")
     .eq("santri_id", user.id)
     .eq("lesson_id", input.lessonId)
     .maybeSingle();
 
-  const { error } = await supabase.from("progres_pelajaran").upsert(
+  const { error } = await db.from("progres_pelajaran").upsert(
     {
       ...(adaSebelumnya ? { id: adaSebelumnya.id } : {}),
       santri_id: user.id,

@@ -11,17 +11,17 @@ import {
 } from "@/components/ui/table";
 import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { wajibPengajar } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { nomorWa } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Santriwati Bimbingan" };
 
 export default async function SantriBimbinganPage() {
   await wajibPengajar();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
   // RLS sudah membatasi ke angkatan yang dibimbing pengguna ini.
-  const { data: enroll } = await supabase
+  const { data: enroll } = await db
     .from("enrollments")
     .select("id, santri_id, status, profiles(nama, no_hp, kota), courses(judul), batches(nama)")
     .neq("status", "berhenti");
@@ -29,7 +29,7 @@ export default async function SantriBimbinganPage() {
   const idSantri = [...new Set((enroll ?? []).map((e) => e.santri_id))];
 
   const { data: penilaian } = idSantri.length
-    ? await supabase
+    ? await db
         .from("penilaian_setoran")
         .select("santri_id, enrollment_id, nilai_rata")
         .in("santri_id", idSantri)

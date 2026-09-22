@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 
 export type HasilDaftar = { pesan: string } | undefined;
 
@@ -22,14 +22,14 @@ export async function daftarKelasAction(
 
   if (!courseId) return { pesan: "Kelas tidak dikenali." };
 
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await db.auth.getUser();
 
   if (!user) redirect(`/masuk?next=${encodeURIComponent(`/program/${slug}`)}`);
 
-  const { data, error } = await supabase.rpc("buat_pesanan", {
+  const { data, error } = await db.rpc("buat_pesanan", {
     p_course: courseId,
     p_batch: batchId || null,
   });

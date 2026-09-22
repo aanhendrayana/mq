@@ -16,7 +16,7 @@ import { KartuTransfer } from "@/components/belajar/kartu-transfer";
 import { FormBukti } from "@/components/belajar/form-bukti";
 import { StatusPesananBadge } from "@/components/belajar/status-pesanan";
 import { wajibMasuk } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { ambilKontak, ambilRekening } from "@/lib/pengaturan";
 import { jarakWaktu, rupiah, tanggalJam } from "@/lib/format";
 
@@ -27,13 +27,13 @@ export default async function DetailTagihanPage({
 }: PageProps<"/belajar/tagihan/[invoice]">) {
   const { invoice } = await params;
   const pengguna = await wajibMasuk();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
   // Tandai dulu pesanan yang lewat batas waktu, supaya status yang tampil di
   // halaman ini selalu jujur tanpa perlu penjadwal terpisah.
-  await supabase.rpc("kadaluarsakan_pesanan");
+  await db.rpc("kadaluarsakan_pesanan");
 
-  const { data: pesanan } = await supabase
+  const { data: pesanan } = await db
     .from("orders")
     .select("*, courses(judul, slug, jenjang), batches(nama, jadwal_ringkas)")
     .eq("nomor_invoice", invoice)

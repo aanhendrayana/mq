@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { TombolTerbitkan } from "@/components/admin/tombol-terbitkan";
 import { wajibAdmin } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { SYARAT_SERTIFIKAT } from "@/lib/konstanta";
 import { tanggal } from "@/lib/format";
 import type { RingkasanCapaian } from "@/lib/database.types";
@@ -27,14 +27,14 @@ function Syarat({ terpenuhi, teks }: { terpenuhi: boolean; teks: string }) {
 
 export default async function AdminSertifikatPage() {
   await wajibAdmin();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
   const [{ data: enroll }, { data: sertifikat }] = await Promise.all([
-    supabase
+    db
       .from("enrollments")
       .select("id, santri_id, course_id, status, profiles(nama), courses(judul)")
       .neq("status", "berhenti"),
-    supabase
+    db
       .from("sertifikat")
       .select("*, profiles!sertifikat_santri_id_fkey(nama), courses(judul)")
       .order("tgl_terbit", { ascending: false }),
@@ -49,7 +49,7 @@ export default async function AdminSertifikatPage() {
 
   const capaian = new Map<string, RingkasanCapaian>();
   for (const e of calon) {
-    const { data } = await supabase.rpc("ringkasan_capaian", {
+    const { data } = await db.rpc("ringkasan_capaian", {
       p_santri: e.santri_id,
       p_course: e.course_id,
     });

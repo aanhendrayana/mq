@@ -24,12 +24,12 @@ import {
 } from "@/components/ui/accordion";
 import { PanelDaftar, type AngkatanTersedia } from "@/components/marketing/panel-daftar";
 import { kurikulumPublik } from "@/lib/kelas";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { durasi, inisial, jamTayang, rupiah } from "@/lib/format";
 
 async function ambilKelas(slug: string) {
-  const supabase = await buatKlienServer();
-  const { data } = await supabase
+  const db = await buatKlienServer();
+  const { data } = await db
     .from("courses")
     .select("*, programs(slug, nama)")
     .eq("slug", slug)
@@ -55,27 +55,27 @@ export default async function DetailKelasPage({ params }: PageProps<"/program/[s
   const kelas = await ambilKelas(slug);
   if (!kelas) notFound();
 
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await db.auth.getUser();
 
   const [bab, { data: angkatanMentah }, { data: faq }, { data: testimoni }] =
     await Promise.all([
       kurikulumPublik(kelas.id),
-      supabase
+      db
         .from("batches")
         .select("id, nama, tgl_mulai, jadwal_ringkas, kuota, status, ustadz_id")
         .eq("course_id", kelas.id)
         .in("status", ["pendaftaran", "berjalan"])
         .order("tgl_mulai"),
-      supabase
+      db
         .from("faq")
         .select("*")
         .eq("course_id", kelas.id)
         .eq("is_published", true)
         .order("urutan"),
-      supabase
+      db
         .from("testimoni")
         .select("*")
         .eq("course_id", kelas.id)
@@ -87,7 +87,7 @@ export default async function DetailKelasPage({ params }: PageProps<"/program/[s
   // yang belum dibayar), agar kursi tidak "terkunci" oleh pesanan yang hangus.
   const idAngkatan = (angkatanMentah ?? []).map((a) => a.id);
   const { data: terisi } = idAngkatan.length
-    ? await supabase
+    ? await db
         .from("enrollments")
         .select("batch_id")
         .in("batch_id", idAngkatan)
@@ -101,20 +101,20 @@ export default async function DetailKelasPage({ params }: PageProps<"/program/[s
 
   const idUstadz = [...new Set((angkatanMentah ?? []).map((a) => a.ustadz_id).filter(Boolean))];
   const { data: pengajar } = idUstadz.length
-    ? await supabase.from("pengajar_publik").select("*").in("id", idUstadz as string[])
+    ? await db.from("pengajar_publik").select("*").in("id", idUstadz as string[])
     : { data: [] };
 
   // Keadaan pengguna terhadap kelas ini menentukan tombol apa yang tampil.
   let keadaan: Parameters<typeof PanelDaftar>[0]["keadaan"] = { jenis: "tamu" };
   if (user) {
     const [{ data: enroll }, { data: pesanan }] = await Promise.all([
-      supabase
+      db
         .from("enrollments")
         .select("id")
         .eq("santri_id", user.id)
         .eq("course_id", kelas.id)
         .maybeSingle(),
-      supabase
+      db
         .from("orders")
         .select("nomor_invoice, status")
         .eq("santri_id", user.id)

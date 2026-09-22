@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { wajibPengajar } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { jarakWaktu, tanggalJam } from "@/lib/format";
 import { waktuPermintaan } from "@/lib/waktu";
 
@@ -20,11 +20,11 @@ const WARNA_STATUS = {
 
 export default async function PengajarPage() {
   await wajibPengajar();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
   // Admin ikut memakai panel ini; kalau tidak ada filter, admin melihat semua
   // angkatan, sedangkan ustadzah hanya angkatannya sendiri (dijamin RLS).
-  const { data: angkatan } = await supabase
+  const { data: angkatan } = await db
     .from("batches")
     .select("*, courses(judul, jenjang)")
     .order("tgl_mulai", { ascending: false });
@@ -34,8 +34,8 @@ export default async function PengajarPage() {
 
   const [{ data: enroll }, { data: sesi }] = idBatch.length
     ? await Promise.all([
-        supabase.from("enrollments").select("batch_id, status").in("batch_id", idBatch),
-        supabase
+        db.from("enrollments").select("batch_id, status").in("batch_id", idBatch),
+        db
           .from("sesi_halaqah")
           .select("id, batch_id, judul, pertemuan_ke, mulai_at")
           .in("batch_id", idBatch)

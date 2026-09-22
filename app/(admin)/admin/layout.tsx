@@ -1,13 +1,13 @@
 import { KerangkaDasbor } from "@/components/dasbor/kerangka";
 import { wajibAdmin } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const pengguna = await wajibAdmin();
 
   // Lencana pembayaran: pesanan yang menunggu diperiksa admin.
-  const supabase = await buatKlienServer();
-  const { count } = await supabase
+  const db = await buatKlienServer();
+  const { count } = await db
     .from("orders")
     .select("id", { count: "exact", head: true })
     .eq("status", "menunggu_verifikasi");

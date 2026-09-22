@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { wajibAdmin } from "@/lib/auth";
 import type { Peran } from "@/lib/konstanta";
 
@@ -32,17 +32,17 @@ export async function ubahPeranAction(
     return { pesan: "Anda tidak dapat mengubah peran akun Anda sendiri." };
   }
 
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
   if (peranBaru !== "admin") {
-    const { data: calon } = await supabase
+    const { data: calon } = await db
       .from("profiles")
       .select("peran")
       .eq("id", penggunaId)
       .maybeSingle();
 
     if (calon?.peran === "admin") {
-      const { count } = await supabase
+      const { count } = await db
         .from("profiles")
         .select("id", { count: "exact", head: true })
         .eq("peran", "admin");
@@ -53,7 +53,7 @@ export async function ubahPeranAction(
     }
   }
 
-  const { error } = await supabase
+  const { error } = await db
     .from("profiles")
     .update({ peran: peranBaru })
     .eq("id", penggunaId);

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 
 export type HasilProfil = { pesan?: string; sukses?: string } | undefined;
 
@@ -28,15 +28,15 @@ export async function simpanProfilAction(
   });
   if (!hasil.success) return { pesan: hasil.error.issues[0].message };
 
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await db.auth.getUser();
   if (!user) return { pesan: "Sesi Anda berakhir. Silakan masuk kembali." };
 
   // Kolom `peran` sengaja tidak disertakan. Trigger jaga_peran_profil() juga
   // akan menolaknya, tapi lebih baik tidak dikirim sama sekali.
-  const { error } = await supabase
+  const { error } = await db
     .from("profiles")
     .update({
       nama: hasil.data.nama,

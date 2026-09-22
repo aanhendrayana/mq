@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { wajibAdmin } from "@/lib/auth";
 
 export type HasilAdmin = { pesan?: string; sukses?: string } | undefined;
@@ -91,10 +91,10 @@ export async function simpanKelasAction(
     is_published: Boolean(d.is_published),
   };
 
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
   if (id) {
-    const { error } = await supabase.from("courses").update(isi).eq("id", id);
+    const { error } = await db.from("courses").update(isi).eq("id", id);
     if (error) return { pesan: galatRamah(error.message, error.code) };
     revalidatePath("/admin/kelas");
     revalidatePath(`/admin/kelas/${id}`);
@@ -102,7 +102,7 @@ export async function simpanKelasAction(
     return { sukses: "Kelas tersimpan." };
   }
 
-  const { data, error } = await supabase.from("courses").insert(isi).select("id").single();
+  const { data, error } = await db.from("courses").insert(isi).select("id").single();
   if (error) return { pesan: galatRamah(error.message, error.code) };
 
   revalidatePath("/admin/kelas");
@@ -118,8 +118,8 @@ function galatRamah(pesan: string, kode?: string): string {
 
 export async function ubahTerbitAction(id: string, terbit: boolean): Promise<HasilAdmin> {
   await wajibAdmin();
-  const supabase = await buatKlienServer();
-  const { error } = await supabase
+  const db = await buatKlienServer();
+  const { error } = await db
     .from("courses")
     .update({ is_published: terbit })
     .eq("id", id);
@@ -155,10 +155,10 @@ export async function simpanModulAction(
     urutan: hasil.data.urutan,
   };
 
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
   const { error } = id
-    ? await supabase.from("modules").update(isi).eq("id", id)
-    : await supabase.from("modules").insert(isi);
+    ? await db.from("modules").update(isi).eq("id", id)
+    : await db.from("modules").insert(isi);
   if (error) return { pesan: error.message };
 
   revalidatePath(`/admin/kelas/${hasil.data.course_id}`);
@@ -167,9 +167,9 @@ export async function simpanModulAction(
 
 export async function hapusModulAction(id: string, courseId: string): Promise<HasilAdmin> {
   await wajibAdmin();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
-  const { count } = await supabase
+  const { count } = await db
     .from("lessons")
     .select("id", { count: "exact", head: true })
     .eq("module_id", id);
@@ -180,7 +180,7 @@ export async function hapusModulAction(id: string, courseId: string): Promise<Ha
     };
   }
 
-  const { error } = await supabase.from("modules").delete().eq("id", id);
+  const { error } = await db.from("modules").delete().eq("id", id);
   if (error) return { pesan: error.message };
 
   revalidatePath(`/admin/kelas/${courseId}`);
@@ -195,7 +195,7 @@ const skemaPelajaran = z.object({
   judul: z.string().trim().min(3, "Judul pelajaran minimal 3 huruf."),
   slug: z.string().trim().optional(),
   tipe: z.enum(["video", "teks", "audio", "tugas"]),
-  video_provider: z.enum(["youtube", "bunny", "supabase"]),
+  video_provider: z.enum(["youtube", "bunny", "db"]),
   video_id: z.string().trim().optional(),
   durasi_menit: z.coerce.number().min(0).max(600),
   konten_md: z.string().trim().max(20000).optional(),
@@ -229,10 +229,10 @@ export async function simpanPelajaranAction(
     is_preview: Boolean(d.is_preview),
   };
 
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
   const { error } = id
-    ? await supabase.from("lessons").update(isi).eq("id", id)
-    : await supabase.from("lessons").insert(isi);
+    ? await db.from("lessons").update(isi).eq("id", id)
+    : await db.from("lessons").insert(isi);
 
   if (error) {
     if (error.code === "23505") {
@@ -250,8 +250,8 @@ export async function hapusPelajaranAction(
   courseId: string,
 ): Promise<HasilAdmin> {
   await wajibAdmin();
-  const supabase = await buatKlienServer();
-  const { error } = await supabase.from("lessons").delete().eq("id", id);
+  const db = await buatKlienServer();
+  const { error } = await db.from("lessons").delete().eq("id", id);
   if (error) return { pesan: error.message };
 
   revalidatePath(`/admin/kelas/${courseId}`);

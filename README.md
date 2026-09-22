@@ -9,7 +9,7 @@ setoran terjadwal**, **absensi**, **penilaian bacaan empat aspek**, **rapor
 tahsin**, dan **sertifikat yang bisa diverifikasi publik**.
 
 - **Stack:** Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui · PostgreSQL Native · Drizzle ORM
-- **Autentikasi:** Native Session JWT (jose + bcryptjs), tanpa ketergantungan Supabase
+- **Autentikasi:** Native Session JWT (jose + bcryptjs) mandiri
 - **Pembayaran:** transfer manual + kode unik + verifikasi admin
 - **Video:** YouTube unlisted (penyedia disimpan per pelajaran, siap pindah ke Bunny.net)
 
@@ -104,12 +104,11 @@ app/
 ├─ (santri)/belajar/  kelas saya, pemutar, jadwal, rapor, sertifikat, tagihan, profil
 ├─ (pengajar)/pengajar/  angkatan, jadwal mengajar, absensi & penilaian
 ├─ (admin)/admin/   ringkasan, pembayaran, kelas, angkatan, sertifikat, pengguna, pengaturan
-├─ auth/konfirmasi/ pendaratan tautan email Supabase
+├─ api/bukti-bayar/ akses berkas bukti transfer privat
 └─ api/sertifikat/  unduhan PDF
 components/  ui/ (shadcn) · marketing/ · belajar/ · pengajar/ · admin/ · dasbor/
-lib/         supabase/{client,server,admin,proxy} · auth · konstanta · format · kelas · dst.
-supabase/    migrations/ · seed.sql · promosikan_peran.sql
-proxy.ts     penyegaran sesi + proteksi rute per peran
+lib/         db/{schema,seed,klien,server,admin} · auth · konstanta · format · kelas · dst.
+proxy.ts     penyegaran sesi JWT + proteksi rute per peran
 ```
 
 Beberapa segmen di bawah `/belajar` bersifat **kata kunci**: `tagihan`,
@@ -119,21 +118,11 @@ terjangkau.
 
 ## Catatan keamanan
 
-- **RLS adalah pengaman utama, bukan pelengkap.** Anon key ada di dalam bundel
-  JavaScript dan bisa dibaca siapa saja; yang memisahkan data satu santriwati
-  dari santriwati lain hanyalah policy di `20260903000003_rls.sql`.
-- Fungsi cek peran ditulis `security definer` — policy pada `profiles` yang
-  melakukan subquery ke `profiles` akan memicu rekursi tak berujung.
-- Santriwati **tidak punya** hak INSERT/UPDATE pada `orders`. Pesanan dibuat lewat
-  `buat_pesanan()` dan bukti diunggah lewat `unggah_bukti()`, sehingga harga
-  selalu ditentukan server.
-- Verifikasi pembayaran (`setujui_pesanan()`) menandai lunas **dan** membuka
-  akses kelas dalam satu transaksi, supaya tak pernah ada santriwati yang
-  sudah membayar tapi tidak bisa masuk kelas.
-- Bucket `bukti-bayar` privat; admin membukanya lewat URL bertanda tangan
-  berumur 10 menit, bukan URL publik permanen.
-- Verifikasi sertifikat publik lewat fungsi `cek_sertifikat()`, bukan `select`
-  ke tabel — supaya token milik orang lain tidak bisa dipanen.
+- **Autentikasi Mandiri (JWT HS256 & HTTP-only Cookies)**: Sesi diamankan dengan token JWT terenkripsi yang disimpan dalam cookie `httpOnly` dengan proteksi `SameSite: Lax`.
+- **Proteksi Rute di Edge/Proxy**: Rute privat `/admin`, `/pengajar`, dan `/belajar` diproteksi langsung di [proxy.ts](proxy.ts) sebelum mencapai server component.
+- **Validasi Transaksi di Server**: Santriwati tidak bisa mengubah status pesanan. Pembuatan pesanan (`buat_pesanan()`) dan verifikasi pembayaran (`setujui_pesanan()`) diproses secara atomic di sisi server.
+- **Penyimpanan Bukti Bayar Privat**: Berkas bukti transfer disimpan secara aman dan diakses melalui endpoint proteksi `/api/bukti-bayar/...` yang memverifikasi kepemilikan akun atau hak akses admin.
+- **Verifikasi Sertifikat Publik**: Menggunakan fungsi `cek_sertifikat()` yang aman tanpa mengekspos token lain.
 
 ### Batas yang perlu diketahui
 
@@ -147,34 +136,9 @@ tanpa migrasi data.
 ## Perintah
 
 ```bash
-npm run dev     # server pengembangan
-npm run build   # build produksi (sekaligus typecheck)
-npm run lint    # ESLint
+npm run dev       # server pengembangan (Turbopack)
+npm run build     # build produksi standalone (sekaligus typecheck)
+npm run lint      # ESLint
 npx tsc --noEmit  # typecheck saja
 ```
 
-## Menguji keamanan RLS
-
-`supabase/uji_rls.sql` menjalankan ~40 pemeriksaan terhadap policy yang
-sesungguhnya. Skrip itu meniru pengguna nyata dengan menyetel peran Postgres
-`anon`/`authenticated` beserta klaim JWT-nya — persis seperti PostgREST saat
-menerima permintaan dari browser — jadi yang diuji policy-nya, bukan logika
-aplikasi. Seluruh isinya dibungkus transaksi yang di-`rollback`, sehingga aman
-dijalankan berulang kali dan tidak meninggalkan data.
-
-```bash
-psql "$(supabase status -o env | grep '^DB_URL=' | cut -d= -f2- | tr -d '"')" \
-     -v ON_ERROR_STOP=1 -f supabase/uji_rls.sql
-```
-
-Pemeriksaan yang gagal memunculkan exception dan menghentikan skrip di titik
-yang salah. Yang diuji antara lain: tamu tidak melihat `video_id` pelajaran
-berbayar, santriwati tidak bisa menandai pesanannya lunas sendiri atau mengangkat
-dirinya jadi admin, harga tidak bisa dipalsukan dari klien, ustadzah tidak bisa
-menilai santriwati di luar bimbingannya, dan token sertifikat tidak bisa dipanen
-dari tabel.
-
-Yang **tidak** tercakup skrip ini dan perlu diperiksa manual:
-
-- santriwati membuka `/admin` dan `/pengajar` → harus dialihkan oleh `proxy.ts`
-- membuka objek `bukti-bayar` milik orang lain lewat URL Storage → harus 403

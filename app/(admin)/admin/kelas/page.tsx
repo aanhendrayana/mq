@@ -6,22 +6,22 @@ import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { SaklarTerbit } from "@/components/admin/saklar-terbit";
 import { wajibAdmin } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { rupiah } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Kelas & Materi" };
 
 export default async function AdminKelasPage() {
   await wajibAdmin();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
-  const { data: kelas } = await supabase
+  const { data: kelas } = await db
     .from("courses")
     .select("*, programs(nama)")
     .order("urutan");
 
-  const { data: pelajaran } = await supabase.from("lessons").select("course_id");
-  const { data: enroll } = await supabase.from("enrollments").select("course_id");
+  const { data: pelajaran } = await db.from("lessons").select("course_id");
+  const { data: enroll } = await db.from("enrollments").select("course_id");
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">

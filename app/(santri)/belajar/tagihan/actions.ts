@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 
 export type HasilUnggah = { pesan?: string; sukses?: string } | undefined;
 
@@ -37,16 +37,16 @@ export async function unggahBuktiAction(
     return { pesan: "Isi nama pemilik rekening pengirim." };
   }
 
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await db.auth.getUser();
   if (!user) return { pesan: "Sesi Anda berakhir. Silakan masuk kembali." };
 
   const ekstensi = berkas.name.split(".").pop()?.toLowerCase() ?? "jpg";
   const path = `${user.id}/${invoice}.${ekstensi}`;
 
-  const { error: galatUnggah } = await supabase.storage
+  const { error: galatUnggah } = await db.storage
     .from("bukti-bayar")
     .upload(path, berkas, { upsert: true, contentType: berkas.type });
 
@@ -54,7 +54,7 @@ export async function unggahBuktiAction(
     return { pesan: `Gagal mengunggah berkas: ${galatUnggah.message}` };
   }
 
-  const { error } = await supabase.rpc("unggah_bukti", {
+  const { error } = await db.rpc("unggah_bukti", {
     p_order: orderId,
     p_path: path,
     p_nama_pengirim: namaPengirim,

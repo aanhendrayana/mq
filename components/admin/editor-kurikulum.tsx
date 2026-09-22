@@ -234,7 +234,7 @@ function DialogPelajaran({
               >
                 <option value="youtube">YouTube</option>
                 <option value="bunny">Bunny.net (belum aktif)</option>
-                <option value="supabase">Supabase Storage (belum aktif)</option>
+                <option value="db">Video Mandiri / MP4 (belum aktif)</option>
               </select>
             </div>
           </div>

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { TombolGabung } from "@/components/belajar/tombol-gabung";
 import { wajibMasuk } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { jarakWaktu, tanggalJam } from "@/lib/format";
 import { waktuPermintaan } from "@/lib/waktu";
 import type { StatusKehadiran } from "@/lib/database.types";
@@ -21,9 +21,9 @@ const LABEL_HADIR: Record<StatusKehadiran, { teks: string; kelas: string }> = {
 
 export default async function JadwalPage() {
   const pengguna = await wajibMasuk();
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
-  const { data: enroll } = await supabase
+  const { data: enroll } = await db
     .from("enrollments")
     .select("batch_id, courses(judul)")
     .eq("santri_id", pengguna.id)
@@ -34,16 +34,16 @@ export default async function JadwalPage() {
 
   const [{ data: sesi }, { data: kehadiran }, { data: angkatan }] = idBatch.length
     ? await Promise.all([
-        supabase
+        db
           .from("sesi_halaqah")
           .select("*")
           .in("batch_id", idBatch)
           .order("mulai_at"),
-        supabase
+        db
           .from("kehadiran")
           .select("sesi_id, status, catatan")
           .eq("santri_id", pengguna.id),
-        supabase
+        db
           .from("batches")
           .select("id, nama, jadwal_ringkas, course_id, courses(judul)")
           .in("id", idBatch),

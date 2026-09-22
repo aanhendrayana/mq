@@ -1,17 +1,12 @@
 /**
- * Tipe skema database — ditulis tangan agar selaras dengan berkas migrasi di
- * `supabase/migrations/`.
- *
- * Kalau skema berubah, perbarui berkas ini. Bisa juga digantikan hasil
- * `supabase gen types typescript --linked > lib/database.types.ts` bila
- * Supabase CLI sudah terpasang dan proyek sudah di-link.
+ * Tipe skema database PostgreSQL native (Drizzle ORM).
  */
 
 export type Json = string | number | boolean | null | { [k: string]: Json } | Json[];
 
 export type PeranPengguna = "santri" | "ustadz" | "admin";
 export type TipePelajaran = "video" | "teks" | "audio" | "tugas";
-export type PenyediaVideo = "youtube" | "bunny" | "supabase";
+export type PenyediaVideo = "youtube" | "bunny" | "lokal";
 export type StatusBatch = "draf" | "pendaftaran" | "berjalan" | "selesai";
 export type StatusKehadiran = "hadir" | "izin" | "sakit" | "alpa";
 export type StatusEnrollment = "aktif" | "selesai" | "berhenti";
@@ -287,9 +282,7 @@ export type RingkasanCapaian = {
 };
 
 /**
- * Deskripsi satu foreign key. supabase-js memakai daftar ini untuk menyimpulkan
- * tipe hasil `select("*, programs(...)")`; tanpa itu, setiap join akan
- * bertipe `SelectQueryError`.
+ * Deskripsi relasi foreign key untuk tipe hasil query join relasional.
  */
 type Relasi<Nama extends string, Kolom extends string, Tujuan extends string> = {
   foreignKeyName: Nama;

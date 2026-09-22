@@ -95,7 +95,7 @@ export function PemutarVideo({
           onSelesai={() => tandaiSelesai(true)}
         />
       ) : (
-        // Penyedia lain (Bunny.net, Supabase Storage) belum dipasang. Ditangani
+        // Penyedia lain (Bunny.net, dsb.) belum dipasang. Ditangani
         // secara eksplisit agar tidak diam-diam menampilkan layar kosong.
         <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-muted text-center">
           <VideoOff className="size-8 text-muted-foreground" />

@@ -8,7 +8,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ambilKontak } from "@/lib/pengaturan";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 
 export const metadata: Metadata = {
   title: "Hubungi Kami",
@@ -18,8 +18,8 @@ export const metadata: Metadata = {
 
 export default async function KontakPage() {
   const kontak = await ambilKontak();
-  const supabase = await buatKlienServer();
-  const { data: faq } = await supabase
+  const db = await buatKlienServer();
+  const { data: faq } = await db
     .from("faq")
     .select("*")
     .is("course_id", null)

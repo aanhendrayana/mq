@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { buatKlienServer } from "@/lib/supabase/server";
-import { buatKlienAdmin } from "@/lib/supabase/admin";
+import { buatKlienServer } from "@/lib/db/server";
+import { buatKlienAdmin } from "@/lib/db/admin";
 import { wajibAdmin } from "@/lib/auth";
 
 export type HasilVerifikasi = { pesan?: string; sukses?: string } | undefined;
@@ -22,8 +22,8 @@ export async function setujuiPesananAction(
   await wajibAdmin();
   const orderId = String(formData.get("order_id") ?? "");
 
-  const supabase = await buatKlienServer();
-  const { error } = await supabase.rpc("setujui_pesanan", { p_order: orderId });
+  const db = await buatKlienServer();
+  const { error } = await db.rpc("setujui_pesanan", { p_order: orderId });
   if (error) return { pesan: error.message };
 
   revalidatePath("/admin/pembayaran");
@@ -43,8 +43,8 @@ export async function tolakPesananAction(
     return { pesan: "Tuliskan alasan penolakan agar santriwati tahu apa yang harus diperbaiki." };
   }
 
-  const supabase = await buatKlienServer();
-  const { error } = await supabase.rpc("tolak_pesanan", {
+  const db = await buatKlienServer();
+  const { error } = await db.rpc("tolak_pesanan", {
     p_order: orderId,
     p_alasan: alasan,
   });

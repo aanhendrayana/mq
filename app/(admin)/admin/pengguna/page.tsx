@@ -13,7 +13,7 @@ import {
 import { JudulHalaman } from "@/components/dasbor/judul-halaman";
 import { PemilihPeran } from "@/components/admin/pemilih-peran";
 import { wajibAdmin } from "@/lib/auth";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { buatKlienServer } from "@/lib/db/server";
 import { nomorWa, tanggal } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -33,13 +33,13 @@ export default async function AdminPenggunaPage({
   const { peran } = await searchParams;
   const saring = typeof peran === "string" ? peran : "semua";
 
-  const supabase = await buatKlienServer();
+  const db = await buatKlienServer();
 
-  let q = supabase.from("profiles").select("*").order("dibuat_at", { ascending: false });
+  let q = db.from("profiles").select("*").order("dibuat_at", { ascending: false });
   if (saring !== "semua") q = q.eq("peran", saring as "santri" | "ustadz" | "admin");
   const { data: pengguna } = await q;
 
-  const { data: enroll } = await supabase.from("enrollments").select("santri_id");
+  const { data: enroll } = await db.from("enrollments").select("santri_id");
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
