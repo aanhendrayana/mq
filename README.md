@@ -22,11 +22,29 @@ tahsin**, dan **sertifikat yang bisa diverifikasi publik**.
 
 ---
 
+## 0. Prasyarat
+
+- Node.js **20.9 atau lebih baru** (lihat [`.nvmrc`](.nvmrc); kalau pakai `nvm`, jalankan `nvm use`).
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) — **cara tercepat** untuk database, lihat Opsi A di bawah. Tidak wajib kalau memang sudah punya PostgreSQL sendiri (Opsi B).
+
 ## 1. Menyiapkan Database PostgreSQL
 
-Aplikasi ini menggunakan database PostgreSQL murni. Pastikan PostgreSQL (versi 15 atau 16) sudah terpasang dan berjalan di sistem Anda.
+Aplikasi ini menggunakan database PostgreSQL murni, diakses lewat `DATABASE_URL`
+— aplikasi dan `drizzle-kit` konek langsung pakai driver `postgres` (npm), **bukan**
+lewat CLI `psql`. Jadi kalau pakai Docker, kamu tidak perlu install PostgreSQL,
+tidak perlu `psql`/`createdb`, dan tidak perlu utak-atik PATH sama sekali.
 
-### Buat Database
+### Opsi A — Docker (direkomendasikan untuk kontributor/klon baru)
+```bash
+docker compose up -d
+```
+Ini menjalankan Postgres 16 di `localhost:5432` dan **otomatis membuat**
+database `mq_ummina` dengan user/sandi `mq_ummina` / `mq_ummina` (lihat
+[`docker-compose.yml`](docker-compose.yml)) — tidak ada langkah manual lain.
+Untuk mematikan: `docker compose down` (data tetap tersimpan di volume;
+`docker compose down -v` kalau mau reset total).
+
+### Opsi B — PostgreSQL sudah terpasang lokal
 ```bash
 createdb mq_ummina
 # Atau melalui psql:
@@ -38,12 +56,14 @@ Salin berkas contoh konfigurasi:
 ```bash
 cp .env.example .env.local
 ```
-Sesuaikan isi `.env.local`:
+Kalau pakai Opsi A (Docker) dengan kredensial bawaan di atas:
 ```env
-DATABASE_URL=postgresql://username:password@localhost:5432/mq_ummina
+DATABASE_URL=postgresql://mq_ummina:mq_ummina@localhost:5432/mq_ummina
 AUTH_SECRET=buat-string-rahasia-minimal-32-karakter-acak
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
+Kalau pakai Opsi B (PostgreSQL lokal), sesuaikan `DATABASE_URL` dengan
+username/password/nama database milikmu sendiri.
 
 ### Dorong Skema dan Isi Data Contoh (Seed)
 ```bash

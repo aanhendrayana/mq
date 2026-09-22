@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mq_ummina
+      POSTGRES_USER: mq_ummina
+      POSTGRES_PASSWORD: mq_ummina
+    ports:
+      - "5432:5432"
+    volumes:
+      - mq_ummina_pgdata:/var/lib/postgresql/data
+
+volumes:
+  mq_ummina_pgdata:
