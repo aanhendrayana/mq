@@ -68,11 +68,15 @@ username/password/nama database milikmu sendiri.
 ### Dorong Skema dan Isi Data Contoh (Seed)
 ```bash
 # Terapkan skema tabel ke PostgreSQL
-npx drizzle-kit push
+npm run db:push
 
 # Isi data awal (program, kelas, ustadzah, admin, data demo)
-npx tsx lib/db/seed.ts
+npm run db:seed
 ```
+> `db:push`/`db:seed` memuat `.env.local` secara eksplisit lewat `dotenv-cli`.
+> **Jangan** jalankan `npx drizzle-kit push` / `npx tsx lib/db/seed.ts` langsung —
+> keduanya bukan proses Next.js sehingga **tidak** otomatis membaca `.env.local`,
+> lalu diam-diam jatuh ke koneksi bawaan di kode dan bisa terlihat nge-hang.
 
 Akun bawaan yang dibuat oleh seed:
 - **Admin**: `admin@mqummina.id` / sandi: `admin123`
