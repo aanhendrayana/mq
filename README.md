@@ -8,7 +8,8 @@ mandiri lewat video — lalu ditambah bagian yang khas madrasah Qur'an: **halaqa
 setoran terjadwal**, **absensi**, **penilaian bacaan empat aspek**, **rapor
 tahsin**, dan **sertifikat yang bisa diverifikasi publik**.
 
-- **Stack:** Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui (Base UI) · Supabase
+- **Stack:** Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui · PostgreSQL Native · Drizzle ORM
+- **Autentikasi:** Native Session JWT (jose + bcryptjs), tanpa ketergantungan Supabase
 - **Pembayaran:** transfer manual + kode unik + verifikasi admin
 - **Video:** YouTube unlisted (penyedia disimpan per pelajaran, siap pindah ke Bunny.net)
 
@@ -21,92 +22,53 @@ tahsin**, dan **sertifikat yang bisa diverifikasi publik**.
 
 ---
 
-## 1. Menyiapkan Supabase
+## 1. Menyiapkan Database PostgreSQL
 
-Ada dua jalur. **Lokal** untuk mengembangkan dan menguji tanpa menyentuh data
-sungguhan; **cloud** untuk produksi.
+Aplikasi ini menggunakan database PostgreSQL murni. Pastikan PostgreSQL (versi 15 atau 16) sudah terpasang dan berjalan di sistem Anda.
 
-### 1a. Lokal (disarankan saat mengembangkan)
-
-Supabase lokal berjalan sebagai kumpulan kontainer, jadi butuh runtime
-container. Colima dipilih karena ringan, tanpa GUI, dan tanpa lisensi berbayar.
-
+### Buat Database
 ```bash
-brew install colima docker supabase/tap/supabase
-colima start --cpu 4 --memory 8 --disk 60   # sekali saja; VM-nya menetap
-
-cd 03_mq_ummina_online
-supabase start        # unduhan ~3 GB pada kali pertama
+createdb mq_ummina
+# Atau melalui psql:
+# psql -c "CREATE DATABASE mq_ummina;"
 ```
 
-`supabase start` otomatis menjalankan seluruh migrasi di `supabase/migrations/`
-lalu memuat `supabase/seed.sql`. Setelah selesai, perintah itu mencetak
-`API URL`, `anon key`, dan `service_role key` — salin ke `.env.local`.
-
-Perintah harian:
-
+### Konfigurasi `.env.local`
+Salin berkas contoh konfigurasi:
 ```bash
-supabase status      # lihat URL & kunci kapan saja
-supabase db reset    # bangun ulang dari nol (migrasi + seed)
-supabase stop        # matikan kontainer
-colima stop          # matikan VM-nya sekalian
+cp .env.example .env.local
+```
+Sesuaikan isi `.env.local`:
+```env
+DATABASE_URL=postgresql://username:password@localhost:5432/mq_ummina
+AUTH_SECRET=buat-string-rahasia-minimal-32-karakter-acak
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-**Supabase Studio** ada di <http://localhost:54323> — untuk melihat isi tabel
-dan menjalankan SQL. **Inbucket** di <http://localhost:54324> menangkap semua
-email keluar, jadi tautan konfirmasi & atur ulang sandi bisa diuji tanpa
-mengirim email sungguhan.
+### Dorong Skema dan Isi Data Contoh (Seed)
+```bash
+# Terapkan skema tabel ke PostgreSQL
+npx drizzle-kit push
 
-### 1b. Supabase Cloud (produksi)
+# Isi data awal (program, kelas, ustadzah, admin, data demo)
+npx tsx lib/db/seed.ts
+```
 
-1. Buat proyek baru di [supabase.com](https://supabase.com).
-2. Buka **SQL Editor**, lalu jalankan berkas berikut **berurutan**:
+Akun bawaan yang dibuat oleh seed:
+- **Admin**: `admin@mqummina.id` / sandi: `admin123`
+- **Ustadzah**: `ustadzah@mqummina.id` / sandi: `ustadzah123`
+- **Santri**: `santri@mqummina.id` / sandi: `santri123`
 
-   ```
-   supabase/migrations/20260903000001_skema_awal.sql
-   supabase/migrations/20260903000002_fungsi_dan_trigger.sql
-   supabase/migrations/20260903000003_rls.sql
-   supabase/migrations/20260903000004_storage.sql
-   supabase/migrations/20260903000005_pengaturan_awal.sql
-   ```
+---
 
-3. (Opsional) Jalankan `supabase/seed.sql` untuk contoh program, kelas,
-   kurikulum, FAQ, dan testimoni.
-
-Kalau proyeknya sudah di-`supabase link`, langkah 2 bisa diringkas menjadi
-`supabase db push`.
-
-> Video pada data contoh memakai video uji publik. Ganti dengan video MQ Ummina
-> yang sebenarnya lewat **/admin/kelas** sebelum dipakai santriwati.
-
-## 2. Menjalankan aplikasi
+## 2. Menjalankan Aplikasi
 
 ```bash
 npm install
-cp .env.example .env.local     # lalu isi nilainya
-npm run dev                    # http://localhost:3000
+npm run dev
 ```
 
-Untuk pengembangan lokal, isi `.env.local` dari keluaran `supabase status`.
-Untuk produksi, dari **Project Settings → API** di dasbor Supabase:
-
-| Variabel | Keterangan |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | URL proyek |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Kunci anon — **aman** terlihat di browser; yang mengamankan data adalah RLS |
-| `SUPABASE_SERVICE_ROLE_KEY` | Kunci service_role — **melewati seluruh RLS**, jangan pernah diawali `NEXT_PUBLIC_` |
-| `NEXT_PUBLIC_SITE_URL` | Alamat situs saat produksi (untuk metadata, tautan email, dan QR sertifikat) |
-
-## 3. Membuat admin pertama
-
-Peran tidak bisa dinaikkan dari dalam aplikasi — trigger `jaga_peran_profil()`
-menolak perubahan kolom `peran` oleh siapa pun kecuali admin. Admin pertama
-karena itu dibuat lewat SQL Editor (yang berjalan sebagai `service_role`):
-
-1. Daftar akun biasa lewat halaman **/daftar**.
-2. Buka `supabase/promosikan_peran.sql`, ganti alamat emailnya, jalankan di SQL Editor.
-
-Setelah ada satu admin, peran berikutnya diatur lewat **/admin/pengguna**.
+Buka di browser: <http://localhost:3000> (atau port yang dialokasikan Next.js).
 
 ---
 

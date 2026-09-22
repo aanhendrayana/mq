@@ -1,4 +1,6 @@
-import { buatKlienServer } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { pengaturan } from "@/lib/db/schema";
+import { inArray, desc } from "drizzle-orm";
 
 export type Kontak = {
   whatsapp: string;
@@ -51,24 +53,23 @@ const CADANGAN = {
 };
 
 /**
- * Membaca beberapa kunci `pengaturan_situs` sekaligus.
- *
- * Selalu mengembalikan nilai cadangan bila kunci belum ada, supaya halaman
- * depan tidak pernah kosong hanya karena admin belum mengisi pengaturan.
+ * Membaca beberapa kunci `pengaturan` sekaligus dari PostgreSQL.
  */
 export async function ambilPengaturan<K extends string>(
   ...kunci: K[]
 ): Promise<Record<K, unknown>> {
-  const supabase = await buatKlienServer();
-  const { data } = await supabase
-    .from("pengaturan_situs")
-    .select("kunci, nilai")
-    .in("kunci", kunci);
+  const data = await db
+    .select({
+      kunci: pengaturan.kunci,
+      nilai: pengaturan.nilai,
+    })
+    .from(pengaturan)
+    .where(inArray(pengaturan.kunci, kunci));
 
   const hasil = {} as Record<K, unknown>;
   for (const k of kunci) {
     hasil[k] =
-      data?.find((r) => r.kunci === k)?.nilai ??
+      data.find((r) => r.kunci === k)?.nilai ??
       (CADANGAN as Record<string, unknown>)[k] ??
       null;
   }
@@ -77,21 +78,15 @@ export async function ambilPengaturan<K extends string>(
 
 /**
  * Penanda versi seluruh pengaturan: waktu perubahan terbaru.
- *
- * Dipakai sebagai `key` pada form pengaturan supaya form dipasang ulang setiap
- * kali datanya benar-benar berubah. Tanpa itu, input tak terkendali akan tetap
- * memegang nilai lama sementara server sudah menyimpan nilai yang dinormalkan
- * (mis. nomor WhatsApp 08... menjadi 62...).
  */
 export async function versiPengaturan(): Promise<string> {
-  const supabase = await buatKlienServer();
-  const { data } = await supabase
-    .from("pengaturan_situs")
-    .select("diubah_at")
-    .order("diubah_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  return data?.diubah_at ?? "awal";
+  const data = await db
+    .select({ diubahAt: pengaturan.diubahAt })
+    .from(pengaturan)
+    .orderBy(desc(pengaturan.diubahAt))
+    .limit(1);
+
+  return data[0]?.diubahAt?.toISOString() ?? "awal";
 }
 
 /** Profil pengasuh madrasah untuk halaman Tentang. */
@@ -107,9 +102,7 @@ export async function ambilKontak(): Promise<Kontak> {
 }
 
 /**
- * Rekening tujuan transfer. Barisnya tidak publik (is_publik = false), jadi
- * hanya terbaca oleh pengguna yang sudah masuk — panggil ini dari halaman
- * tagihan, bukan dari halaman marketing.
+ * Rekening tujuan transfer.
  */
 export async function ambilRekening(): Promise<Rekening> {
   const { rekening } = await ambilPengaturan("rekening");

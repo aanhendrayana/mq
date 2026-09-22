@@ -9,29 +9,34 @@
  * tidak pernah terlihat dari pemeriksaan HTML lewat curl.
  */
 import { chromium } from "playwright";
-import { createServerClient } from "@supabase/ssr";
+import { SignJWT } from "jose";
 
-const [email, sandi, alamat = "http://localhost:3100/"] = process.argv.slice(2);
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+const [email, sandi, alamat = "http://localhost:3001/"] = process.argv.slice(2);
+const KUNCI_RAHASIA = new TextEncoder().encode(
+  process.env.AUTH_SECRET || "1cc13c80c46047f066addca0d6d3b1fe8f5705774573a927cda6b9974fa684cc"
+);
 
-/** Masuk lewat @supabase/ssr agar cookie-nya persis seperti buatan aplikasi. */
+/** Buat token sesi JWT mq_session langsung. */
 async function kukiUntuk(email, sandi) {
-  const toko = new Map();
-  const supabase = createServerClient(SUPABASE_URL, ANON, {
-    cookies: {
-      getAll: () => [...toko].map(([name, value]) => ({ name, value })),
-      setAll: (list) => list.forEach(({ name, value }) => toko.set(name, value)),
+  const jwt = await new SignJWT({
+    sub: "admin-id",
+    email: email || "admin@mqummina.id",
+    peran: "admin",
+    nama: "Administrator",
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("7d")
+    .sign(KUNCI_RAHASIA);
+
+  return [
+    {
+      name: "mq_session",
+      value: jwt,
+      domain: "localhost",
+      path: "/",
     },
-  });
-  const { error } = await supabase.auth.signInWithPassword({ email, password: sandi });
-  if (error) throw new Error(`Gagal masuk: ${error.message}`);
-  return [...toko].map(([name, value]) => ({
-    name,
-    value,
-    domain: "localhost",
-    path: "/",
-  }));
+  ];
 }
 
 const browser = await chromium.launch();

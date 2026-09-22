@@ -1,5 +1,7 @@
-import { buatKlienServer } from "@/lib/supabase/server";
-import type { Course, Enrollment } from "@/lib/database.types";
+import { db } from "@/lib/db";
+import { enrollments, courses, lessons, progresPelajaran } from "@/lib/db/schema";
+import { eq, ne, inArray, desc, and, isNotNull } from "drizzle-orm";
+import type { Course, Enrollment, StatusEnrollment } from "@/lib/database.types";
 
 export type KelasSaya = Enrollment & {
   courses: Pick<Course, "id" | "slug" | "judul" | "subjudul" | "jenjang" | "thumbnail_url">;
@@ -8,40 +10,73 @@ export type KelasSaya = Enrollment & {
   persen: number;
 };
 
-/**
- * Kelas yang diikuti seorang santriwati beserta progresnya.
- *
- * Jumlah pelajaran & progres diambil dengan dua query agregat, bukan satu query
- * per kelas, agar tidak menjadi masalah N+1 saat santriwati mengikuti banyak kelas.
- */
 export async function kelasSaya(santriId: string): Promise<KelasSaya[]> {
-  const supabase = await buatKlienServer();
+  const enrollRows = await db
+    .select({
+      enrollment: enrollments,
+      course: {
+        id: courses.id,
+        slug: courses.slug,
+        judul: courses.judul,
+        subjudul: courses.subjudul,
+        jenjang: courses.jenjang,
+        thumbnailUrl: courses.thumbnailUrl,
+      },
+    })
+    .from(enrollments)
+    .innerJoin(courses, eq(enrollments.courseId, courses.id))
+    .where(and(eq(enrollments.santriId, santriId), ne(enrollments.status, "berhenti")))
+    .orderBy(desc(enrollments.dibuatAt));
 
-  const { data: enroll } = await supabase
-    .from("enrollments")
-    .select("*, courses(id, slug, judul, subjudul, jenjang, thumbnail_url)")
-    .eq("santri_id", santriId)
-    .neq("status", "berhenti")
-    .order("dibuat_at", { ascending: false });
+  if (!enrollRows.length) return [];
 
-  if (!enroll?.length) return [];
-  const idKelas = enroll.map((e) => e.course_id);
+  const courseIds = enrollRows.map((r) => r.enrollment.courseId);
 
-  const [{ data: pelajaran }, { data: progres }] = await Promise.all([
-    supabase.from("kurikulum_publik").select("id, course_id").in("course_id", idKelas),
-    supabase
-      .from("progres_pelajaran")
-      .select("course_id, selesai_at")
-      .eq("santri_id", santriId)
-      .in("course_id", idKelas)
-      .not("selesai_at", "is", null),
+  const [lessonRows, progresRows] = await Promise.all([
+    db
+      .select({ id: lessons.id, courseId: lessons.courseId })
+      .from(lessons)
+      .where(inArray(lessons.courseId, courseIds)),
+    db
+      .select({
+        courseId: progresPelajaran.courseId,
+        selesaiAt: progresPelajaran.selesaiAt,
+      })
+      .from(progresPelajaran)
+      .where(
+        and(
+          eq(progresPelajaran.santriId, santriId),
+          inArray(progresPelajaran.courseId, courseIds),
+          isNotNull(progresPelajaran.selesaiAt)
+        )
+      ),
   ]);
 
-  return enroll.map((e) => {
-    const total = (pelajaran ?? []).filter((p) => p.course_id === e.course_id).length;
-    const selesai = (progres ?? []).filter((p) => p.course_id === e.course_id).length;
+  return enrollRows.map((r) => {
+    const e = r.enrollment;
+    const total = lessonRows.filter((l) => l.courseId === e.courseId).length;
+    const selesai = progresRows.filter((p) => p.courseId === e.courseId).length;
+
+    const enrollmentFormatted: Enrollment = {
+      id: e.id,
+      santri_id: e.santriId,
+      course_id: e.courseId,
+      batch_id: e.batchId,
+      status: e.status as StatusEnrollment,
+      tgl_mulai: e.tglMulai,
+      dibuat_at: e.dibuatAt.toISOString(),
+    };
+
     return {
-      ...(e as unknown as KelasSaya),
+      ...enrollmentFormatted,
+      courses: {
+        id: r.course.id,
+        slug: r.course.slug,
+        judul: r.course.judul,
+        subjudul: r.course.subjudul,
+        jenjang: r.course.jenjang,
+        thumbnail_url: r.course.thumbnailUrl,
+      },
       total_pelajaran: total,
       selesai,
       persen: total === 0 ? 0 : Math.round((selesai / total) * 100),

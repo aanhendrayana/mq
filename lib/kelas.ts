@@ -1,4 +1,6 @@
-import { buatKlienServer } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { courses, programs, modules, lessons } from "@/lib/db/schema";
+import { eq, and, asc, inArray } from "drizzle-orm";
 import type { Course, PelajaranPublik, Program } from "@/lib/database.types";
 
 export type KelasRingkas = Course & {
@@ -7,45 +9,69 @@ export type KelasRingkas = Course & {
   total_detik: number;
 };
 
-/**
- * Daftar kelas terbit untuk katalog & halaman depan.
- *
- * Jumlah pelajaran & durasi diambil dari view `kurikulum_publik` (bukan tabel
- * `lessons`) supaya pengunjung anonim tetap bisa melihat ukuran kelas tanpa
- * membuka baris pelajaran yang memuat video_id.
- */
 export async function daftarKelas(opsi?: {
   program?: string;
   batas?: number;
 }): Promise<KelasRingkas[]> {
-  const supabase = await buatKlienServer();
+  // Query courses with programs
+  const rows = await db
+    .select({
+      course: courses,
+      program: {
+        slug: programs.slug,
+        nama: programs.nama,
+      },
+    })
+    .from(courses)
+    .innerJoin(programs, eq(courses.programId, programs.id))
+    .where(
+      opsi?.program
+        ? and(eq(courses.isPublished, true), eq(programs.slug, opsi.program))
+        : eq(courses.isPublished, true)
+    )
+    .orderBy(asc(courses.urutan))
+    .limit(opsi?.batas ?? 100);
 
-  let q = supabase
-    .from("courses")
-    .select("*, programs!inner(slug, nama)")
-    .eq("is_published", true)
-    .order("urutan");
+  if (!rows.length) return [];
 
-  if (opsi?.program) q = q.eq("programs.slug", opsi.program);
-  if (opsi?.batas) q = q.limit(opsi.batas);
+  const courseIds = rows.map((r) => r.course.id);
+  const lessonRows = await db
+    .select({
+      courseId: lessons.courseId,
+      durasiDetik: lessons.durasiDetik,
+    })
+    .from(lessons)
+    .where(inArray(lessons.courseId, courseIds));
 
-  const { data: kelas } = await q;
-  if (!kelas?.length) return [];
+  return rows.map((r) => {
+    const c = r.course;
+    const milik = lessonRows.filter((l) => l.courseId === c.id);
+    const courseFormatted: Course = {
+      id: c.id,
+      program_id: c.programId,
+      slug: c.slug,
+      judul: c.judul,
+      subjudul: c.subjudul,
+      jenjang: c.jenjang,
+      deskripsi: c.deskripsi,
+      apa_yang_dipelajari: c.apaYangDipelajari as string[],
+      untuk_siapa: c.untukSiapa as string[],
+      prasyarat: c.prasyarat,
+      thumbnail_url: c.thumbnailUrl,
+      harga: c.harga,
+      harga_coret: c.hargaCoret,
+      durasi_pekan: c.durasiPekan,
+      is_published: c.isPublished,
+      urutan: c.urutan,
+      dibuat_at: c.dibuatAt.toISOString(),
+      diubah_at: c.diubahAt.toISOString(),
+    };
 
-  const { data: pelajaran } = await supabase
-    .from("kurikulum_publik")
-    .select("course_id, durasi_detik")
-    .in(
-      "course_id",
-      kelas.map((k) => k.id),
-    );
-
-  return kelas.map((k) => {
-    const milik = pelajaran?.filter((p) => p.course_id === k.id) ?? [];
     return {
-      ...(k as unknown as Course & { programs: Pick<Program, "slug" | "nama"> }),
+      ...courseFormatted,
+      programs: r.program,
       jumlah_pelajaran: milik.length,
-      total_detik: milik.reduce((t, p) => t + (p.durasi_detik ?? 0), 0),
+      total_detik: milik.reduce((sum, l) => sum + (l.durasiDetik ?? 0), 0),
     };
   });
 }
@@ -58,25 +84,45 @@ export type KurikulumBab = {
   pelajaran: PelajaranPublik[];
 };
 
-/** Kurikulum untuk halaman penjualan: judul bab & pelajaran, tanpa video_id. */
 export async function kurikulumPublik(courseId: string): Promise<KurikulumBab[]> {
-  const supabase = await buatKlienServer();
-
-  const [{ data: bab }, { data: pelajaran }] = await Promise.all([
-    supabase
-      .from("modules")
-      .select("id, judul, ringkasan, urutan")
-      .eq("course_id", courseId)
-      .order("urutan"),
-    supabase
-      .from("kurikulum_publik")
-      .select("*")
-      .eq("course_id", courseId)
-      .order("urutan"),
+  const [modulRows, lessonRows] = await Promise.all([
+    db
+      .select()
+      .from(modules)
+      .where(eq(modules.courseId, courseId))
+      .orderBy(asc(modules.urutan)),
+    db
+      .select({
+        id: lessons.id,
+        moduleId: lessons.moduleId,
+        courseId: lessons.courseId,
+        judul: lessons.judul,
+        tipe: lessons.tipe,
+        durasiDetik: lessons.durasiDetik,
+        isPreview: lessons.isPreview,
+        urutan: lessons.urutan,
+      })
+      .from(lessons)
+      .where(eq(lessons.courseId, courseId))
+      .orderBy(asc(lessons.urutan)),
   ]);
 
-  return (bab ?? []).map((b) => ({
-    ...b,
-    pelajaran: (pelajaran ?? []).filter((p) => p.module_id === b.id),
+  return modulRows.map((m) => ({
+    id: m.id,
+    judul: m.judul,
+    ringkasan: m.ringkasan,
+    urutan: m.urutan,
+    pelajaran: lessonRows
+      .filter((l) => l.moduleId === m.id)
+      .map((l) => ({
+        id: l.id,
+        module_id: l.moduleId,
+        course_id: l.courseId,
+        judul: l.judul,
+        tipe: l.tipe as PelajaranPublik["tipe"],
+        durasi_detik: l.durasiDetik,
+        is_preview: l.isPreview,
+        urutan: l.urutan,
+      })),
   }));
 }

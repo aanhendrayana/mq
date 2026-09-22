@@ -1,36 +1,64 @@
 import "server-only";
 import { redirect } from "next/navigation";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import { ambilTokenDariCookie, verifikasiTokenSesi } from "@/lib/auth/session";
 import { BERANDA_PERAN, type Peran } from "@/lib/konstanta";
-import type { Profile } from "@/lib/database.types";
+
+export type PenggunaProfil = {
+  id: string;
+  nama: string;
+  no_hp: string | null;
+  peran: Peran;
+  tgl_lahir: string | null;
+  kota: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  dibuat_at: string;
+  diubah_at: string;
+};
 
 export type PenggunaAktif = {
   id: string;
   email: string | null;
-  profil: Profile;
+  profil: PenggunaProfil;
 };
 
 /**
- * Pengguna yang sedang masuk, atau null.
- *
- * Selalu memakai getUser() (bukan getSession()) karena cookie sesi ada di sisi
- * klien dan bisa dimanipulasi; getUser() memverifikasinya ke Supabase.
+ * Mengambil data pengguna yang sedang masuk dari sesi cookie & database PostgreSQL.
  */
 export async function penggunaSekarang(): Promise<PenggunaAktif | null> {
-  const supabase = await buatKlienServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const token = await ambilTokenDariCookie();
+  if (!token) return null;
+
+  const payload = await verifikasiTokenSesi(token);
+  if (!payload) return null;
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, payload.id),
+  });
+
   if (!user) return null;
 
-  const { data: profil } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+  const profil: PenggunaProfil = {
+    id: user.id,
+    nama: user.nama,
+    no_hp: user.noHp,
+    peran: user.peran as Peran,
+    tgl_lahir: user.tglLahir,
+    kota: user.kota,
+    avatar_url: user.avatarUrl,
+    bio: user.bio,
+    dibuat_at: user.dibuatAt.toISOString(),
+    diubah_at: user.diubahAt.toISOString(),
+  };
 
-  if (!profil) return null;
-  return { id: user.id, email: user.email ?? null, profil };
+  return {
+    id: user.id,
+    email: user.email,
+    profil,
+  };
 }
 
 /** Wajib sudah masuk. Kalau belum, dilempar ke /masuk dengan tujuan kembali. */
@@ -45,8 +73,7 @@ export async function wajibMasuk(tujuan?: string): Promise<PenggunaAktif> {
 
 /**
  * Wajib punya salah satu peran. Kalau perannya tidak cocok, dialihkan ke
- * beranda perannya sendiri — bukan ditampilkan 403 — supaya santriwati yang
- * salah membuka /admin tidak melihat bahwa halaman itu ada.
+ * beranda perannya sendiri.
  */
 export async function wajibPeran(...peran: Peran[]): Promise<PenggunaAktif> {
   const pengguna = await wajibMasuk();

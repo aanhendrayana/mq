@@ -21,7 +21,9 @@ import {
 import { KartuKelas } from "@/components/marketing/kartu-kelas";
 import { daftarKelas } from "@/lib/kelas";
 import { ambilPengaturan, type Hero, type LangkahAlur } from "@/lib/pengaturan";
-import { buatKlienServer } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { programs, testimoni, faq } from "@/lib/db/schema";
+import { eq, isNull, and, asc } from "drizzle-orm";
 import { inisial } from "@/lib/format";
 
 const KEUNGGULAN = [
@@ -48,24 +50,22 @@ const KEUNGGULAN = [
 ];
 
 export default async function BerandaPage() {
-  const supabase = await buatKlienServer();
-  const [kelas, pengaturan, { data: program }, { data: testimoni }, { data: faq }] =
+  const [kelas, pengaturan, program, daftarTestimoni, daftarFaq] =
     await Promise.all([
       daftarKelas({ batas: 6 }),
       ambilPengaturan("hero", "statistik", "alur_belajar"),
-      supabase.from("programs").select("*").order("urutan"),
-      supabase
-        .from("testimoni")
-        .select("*")
-        .eq("is_published", true)
-        .order("urutan")
+      db.select().from(programs).orderBy(asc(programs.urutan)),
+      db
+        .select()
+        .from(testimoni)
+        .where(eq(testimoni.isPublished, true))
+        .orderBy(asc(testimoni.urutan))
         .limit(3),
-      supabase
-        .from("faq")
-        .select("*")
-        .is("course_id", null)
-        .eq("is_published", true)
-        .order("urutan"),
+      db
+        .select()
+        .from(faq)
+        .where(and(isNull(faq.courseId), eq(faq.isPublished, true)))
+        .orderBy(asc(faq.urutan)),
     ]);
 
   const hero = pengaturan.hero as Hero;
@@ -251,11 +251,11 @@ export default async function BerandaPage() {
       )}
 
       {/* ------------------------------------------------------------ Testimoni */}
-      {testimoni && testimoni.length > 0 && (
+      {daftarTestimoni && daftarTestimoni.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 py-20">
           <h2 className="font-heading text-3xl font-bold">Kata santriwati kami</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {testimoni.map((t) => (
+            {daftarTestimoni.map((t) => (
               <Card key={t.id} className="gap-4 p-6">
                 <Quote className="size-7 text-emas" />
                 <p className="flex-1 leading-relaxed text-pretty">{t.isi}</p>
@@ -275,14 +275,14 @@ export default async function BerandaPage() {
       )}
 
       {/* ------------------------------------------------------------------ FAQ */}
-      {faq && faq.length > 0 && (
+      {daftarFaq && daftarFaq.length > 0 && (
         <section className="border-t bg-secondary/30 py-20">
           <div className="mx-auto max-w-3xl px-4">
             <h2 className="font-heading text-center text-3xl font-bold">
               Pertanyaan yang sering diajukan
             </h2>
             <Accordion className="mt-10">
-              {faq.map((f) => (
+              {daftarFaq.map((f) => (
                 <AccordionItem key={f.id} value={f.id}>
                   <AccordionTrigger className="text-left text-base font-medium">
                     {f.pertanyaan}
