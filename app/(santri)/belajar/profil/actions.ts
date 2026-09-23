@@ -1,5 +1,6 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { buatKlienServer } from "@/lib/db/server";
@@ -49,5 +50,11 @@ export async function simpanProfilAction(
   if (error) return { pesan: error.message };
 
   revalidatePath("/belajar", "layout");
+
+  // Dipakai saat pendaftar Google diantar ke sini untuk melengkapi nomor
+  // WhatsApp: setelah tersimpan, ia diteruskan ke halaman yang semula dituju.
+  const tujuan = String(formData.get("next") ?? "");
+  if (tujuan.startsWith("/") && !tujuan.startsWith("//")) redirect(tujuan);
+
   return { sukses: "Profil berhasil diperbarui." };
 }

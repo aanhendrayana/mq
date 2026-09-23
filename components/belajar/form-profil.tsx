@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { simpanProfilAction, type HasilProfil } from "@/app/(santri)/belajar/profil/actions";
 import type { Profile } from "@/lib/database.types";
 
-export function FormProfil({ profil }: { profil: Profile }) {
+export function FormProfil({ profil, tujuan }: { profil: Profile; tujuan?: string }) {
   // Sukses dikabarkan lewat toast, bukan Alert di dalam form: setelah simpan,
   // form dipasang ulang (lihat `key` di halaman pemanggil) agar menampilkan
   // nilai yang benar-benar tersimpan — dan remount itu mengosongkan state di
@@ -26,6 +26,8 @@ export function FormProfil({ profil }: { profil: Profile }) {
 
   return (
     <form action={kirim} className="space-y-5">
+      {tujuan && <input type="hidden" name="next" value={tujuan} />}
+
       <div className="space-y-2">
         <Label htmlFor="nama">Nama Lengkap</Label>
         <Input id="nama" name="nama" required defaultValue={profil.nama} />

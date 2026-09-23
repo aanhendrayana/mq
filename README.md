@@ -1,6 +1,6 @@
-# MQ Ummina Online
+# Madrasah Quran Nurul Musthofa Perum Safira
 
-Platform kursus membaca Al-Qur'an daring untuk **Madrasah Qur'an Ummina** —
+Platform kursus membaca Al-Qur'an daring untuk **Madrasah Quran Nurul Musthofa Perum Safira** —
 madrasah **khusus muslimah**: seluruh santriwati dan pengajarnya perempuan.
 
 Alurnya meniru model kursus daring pada umumnya — katalog kelas, beli, belajar
@@ -61,9 +61,43 @@ Kalau pakai Opsi A (Docker) dengan kredensial bawaan di atas:
 DATABASE_URL=postgresql://mq_ummina:mq_ummina@localhost:5432/mq_ummina
 AUTH_SECRET=buat-string-rahasia-minimal-32-karakter-acak
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=id-klien-google
+GOOGLE_CLIENT_SECRET=rahasia-klien-google
 ```
 Kalau pakai Opsi B (PostgreSQL lokal), sesuaikan `DATABASE_URL` dengan
 username/password/nama database milikmu sendiri.
+
+### Masuk & Daftar dengan Google (opsional)
+Tanpa kedua variabel `GOOGLE_*`, aplikasi tetap jalan: tombol Google akan
+memberi pesan bahwa fiturnya belum dikonfigurasi, dan pendaftaran lewat email
+tetap berfungsi. Untuk mengaktifkannya, di [Google Cloud
+Console](https://console.cloud.google.com/):
+
+1. Buat project (atau pakai yang sudah ada).
+2. **APIs & Services → OAuth consent screen**: pilih tipe **External**, isi
+   nama aplikasi, email dukungan, dan email developer. Scope cukup bawaan
+   (`openid`, `email`, `profile`) — tidak perlu scope sensitif, jadi tidak
+   perlu proses verifikasi Google. Selama masih **Testing**, hanya email yang
+   terdaftar di *Test users* yang bisa masuk; tekan **Publish app** bila sudah
+   mau dipakai santri umum.
+3. **APIs & Services → Credentials → Create credentials → OAuth client ID**,
+   pilih **Web application**, lalu isi:
+   - *Authorized JavaScript origins*: `http://localhost:3000`
+   - *Authorized redirect URIs*: `http://localhost:3000/auth/google/callback`
+
+   Untuk produksi, tambahkan pasangan yang sama dengan domain aslinya
+   (`https://domain-anda.id` dan `https://domain-anda.id/auth/google/callback`).
+   Nilai `NEXT_PUBLIC_SITE_URL` harus sama persis dengan origin yang didaftarkan,
+   karena URI callback dibangun dari variabel itu.
+4. Salin **Client ID** dan **Client Secret** ke `.env.local`, lalu jalankan
+   ulang `npm run dev` (variabel lingkungan hanya dibaca saat server mulai).
+
+Alurnya memakai Authorization Code + PKCE dengan pemeriksaan `state` dan
+`nonce`, dan menolak akun yang emailnya belum terverifikasi di Google. Bila
+email akun Google sama dengan akun yang sudah pernah daftar lewat email, kedua
+cara masuk itu menunjuk ke akun yang sama. Pendaftar baru lewat Google diantar
+ke halaman profil untuk mengisi nomor WhatsApp, karena Google tidak
+menyediakannya sedangkan admin memakainya untuk verifikasi pembayaran.
 
 ### Dorong Skema dan Isi Data Contoh (Seed)
 ```bash
@@ -79,9 +113,9 @@ npm run db:seed
 > lalu diam-diam jatuh ke koneksi bawaan di kode dan bisa terlihat nge-hang.
 
 Akun bawaan yang dibuat oleh seed:
-- **Admin**: `admin@mqummina.id` / sandi: `admin123`
-- **Ustadzah**: `ustadzah@mqummina.id` / sandi: `ustadzah123`
-- **Santri**: `santri@mqummina.id` / sandi: `santri123`
+- **Admin**: `admin@nurulmusthofa.id` / sandi: `admin123`
+- **Ustadzah**: `ustadzah@nurulmusthofa.id` / sandi: `ustadzah123`
+- **Santri**: `santri@nurulmusthofa.id` / sandi: `santri123`
 
 ---
 
@@ -165,4 +199,3 @@ npm run build     # build produksi standalone (sekaligus typecheck)
 npm run lint      # ESLint
 npx tsc --noEmit  # typecheck saja
 ```
-

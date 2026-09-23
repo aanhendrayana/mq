@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { masukAction, type HasilForm } from "@/app/(auth)/actions";
+import { GalatGoogle, PemisahAtau, TombolGoogle } from "@/components/auth/tombol-google";
 
-export function FormMasuk({ tujuan }: { tujuan?: string }) {
+export function FormMasuk({ tujuan, galatGoogle }: { tujuan?: string; galatGoogle?: string }) {
   const [hasil, kirim, sedang] = useActionState<HasilForm, FormData>(masukAction, undefined);
 
   return (
@@ -18,12 +19,18 @@ export function FormMasuk({ tujuan }: { tujuan?: string }) {
       <CardHeader>
         <CardTitle className="font-heading text-2xl">Masuk</CardTitle>
         <CardDescription>
-          Lanjutkan belajar di Madrasah Qur&apos;an Ummina.
+          Lanjutkan belajar di Madrasah Quran Nurul Musthofa Perum Safira.
         </CardDescription>
       </CardHeader>
 
       <CardContent>
-        <form action={kirim} className="space-y-4">
+        <div className="space-y-4">
+          <GalatGoogle kode={galatGoogle} />
+          <TombolGoogle asal="/masuk" tujuan={tujuan} label="Masuk dengan Google" />
+          <PemisahAtau teks="atau masuk dengan email" />
+        </div>
+
+        <form action={kirim} className="mt-4 space-y-4">
           {tujuan && <input type="hidden" name="next" value={tujuan} />}
 
           <div className="space-y-2">

@@ -11,7 +11,7 @@
 import { chromium } from "playwright";
 import { SignJWT } from "jose";
 
-const [email, sandi, alamat = "http://localhost:3001/"] = process.argv.slice(2);
+const [email, sandi, alamat = "http://localhost:3000/"] = process.argv.slice(2);
 const KUNCI_RAHASIA = new TextEncoder().encode(
   process.env.AUTH_SECRET || "1cc13c80c46047f066addca0d6d3b1fe8f5705774573a927cda6b9974fa684cc"
 );
@@ -20,7 +20,7 @@ const KUNCI_RAHASIA = new TextEncoder().encode(
 async function kukiUntuk(email, sandi) {
   const jwt = await new SignJWT({
     sub: "admin-id",
-    email: email || "admin@mqummina.id",
+    email: email || "admin@nurulmusthofa.id",
     peran: "admin",
     nama: "Administrator",
   })

@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { daftarAction, type HasilForm } from "@/app/(auth)/actions";
+import { GalatGoogle, PemisahAtau, TombolGoogle } from "@/components/auth/tombol-google";
 
-export function FormDaftar({ tujuan }: { tujuan?: string }) {
+export function FormDaftar({ tujuan, galatGoogle }: { tujuan?: string; galatGoogle?: string }) {
   const [hasil, kirim, sedang] = useActionState<HasilForm, FormData>(daftarAction, undefined);
 
   if (hasil?.sukses) {
@@ -38,7 +39,13 @@ export function FormDaftar({ tujuan }: { tujuan?: string }) {
       </CardHeader>
 
       <CardContent>
-        <form action={kirim} className="space-y-4">
+        <div className="space-y-4">
+          <GalatGoogle kode={galatGoogle} />
+          <TombolGoogle asal="/daftar" tujuan={tujuan} label="Daftar dengan Google" />
+          <PemisahAtau teks="atau daftar dengan email" />
+        </div>
+
+        <form action={kirim} className="mt-4 space-y-4">
           {tujuan && <input type="hidden" name="next" value={tujuan} />}
 
           <div className="space-y-2">
