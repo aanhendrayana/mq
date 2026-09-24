@@ -12,15 +12,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { keluarAction } from "@/app/(auth)/actions";
 import { inisial } from "@/lib/format";
-import { BERANDA_PERAN } from "@/lib/konstanta";
+import { berandaUntukPeran, labelPeranList } from "@/lib/konstanta";
 import { cn } from "@/lib/utils";
 import type { PenggunaAktif } from "@/lib/auth";
-
-const LABEL_PERAN = {
-  santri: "Santriwati",
-  ustadz: "Ustadzah Pembimbing",
-  admin: "Administrator",
-} as const;
 
 export function MenuPengguna({
   pengguna,
@@ -81,14 +75,14 @@ export function MenuPengguna({
           <p className="truncate text-sm font-semibold">{nama}</p>
           <p className="truncate text-xs text-muted-foreground">{pengguna.email}</p>
           <p className="mt-1 text-xs text-primary">
-            {LABEL_PERAN[pengguna.profil.peran]}
+            {labelPeranList(pengguna.profil.peranList)}
           </p>
         </div>
 
         <DropdownMenuSeparator />
 
         {tautanDasbor && (
-          <DropdownMenuItem render={<Link href={BERANDA_PERAN[pengguna.profil.peran]} />}>
+          <DropdownMenuItem render={<Link href={berandaUntukPeran(pengguna.profil.peranList)} />}>
             <LayoutDashboard className="size-4" />
             Dasbor Saya
           </DropdownMenuItem>

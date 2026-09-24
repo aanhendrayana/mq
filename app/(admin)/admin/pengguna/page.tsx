@@ -15,15 +15,20 @@ import { PemilihPeran } from "@/components/admin/pemilih-peran";
 import { wajibAdmin } from "@/lib/auth";
 import { buatKlienServer } from "@/lib/db/server";
 import { nomorWa, tanggal } from "@/lib/format";
+import { LABEL_PERAN, PERAN, type Peran } from "@/lib/konstanta";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Pengguna" };
 
+// Label sama persis dengan yang dipakai di dropdown (PemilihPeran) — supaya
+// istilah "Ustadzah Pembimbing" di sini dan di sana selalu identik.
 const SARINGAN = [
   { kunci: "semua", label: "Semua" },
-  { kunci: "santri", label: "Santriwati" },
-  { kunci: "ustadz", label: "Ustadzah" },
-  { kunci: "admin", label: "Admin" },
+  { kunci: PERAN.TAMU, label: LABEL_PERAN.tamu },
+  { kunci: PERAN.SANTRI, label: LABEL_PERAN.santri },
+  { kunci: PERAN.USTADZ, label: LABEL_PERAN.ustadz },
+  { kunci: PERAN.UMMI, label: LABEL_PERAN.ummi },
+  { kunci: PERAN.ADMIN, label: LABEL_PERAN.admin },
 ];
 
 export default async function AdminPenggunaPage({
@@ -35,17 +40,41 @@ export default async function AdminPenggunaPage({
 
   const db = await buatKlienServer();
 
+  // Peran sekarang tabel terpisah (satu akun bisa berperan ganda), jadi
+  // menyaring berdasarkan peran berarti cari dulu id-id yang cocok di sana.
+  let idSaring: string[] | null = null;
+  if (saring !== "semua") {
+    const { data: tag } = await db
+      .from("pengguna_peran")
+      .select("pengguna_id")
+      .eq("peran", saring as Peran);
+    idSaring = [...new Set((tag ?? []).map((t) => t.pengguna_id))];
+  }
+
   let q = db.from("profiles").select("*").order("dibuat_at", { ascending: false });
-  if (saring !== "semua") q = q.eq("peran", saring as "santri" | "ustadz" | "admin");
+  if (idSaring) q = q.in("id", idSaring.length ? idSaring : ["00000000-0000-0000-0000-000000000000"]);
   const { data: pengguna } = await q;
 
-  const { data: enroll } = await db.from("enrollments").select("santri_id");
+  const idPengguna = (pengguna ?? []).map((p) => p.id);
+  const [{ data: enroll }, { data: semuaTag }] = idPengguna.length
+    ? await Promise.all([
+        db.from("enrollments").select("santri_id").in("santri_id", idPengguna),
+        db.from("pengguna_peran").select("pengguna_id, peran").in("pengguna_id", idPengguna),
+      ])
+    : [{ data: [] }, { data: [] }];
+
+  const peranMap = new Map<string, Peran[]>();
+  for (const t of semuaTag ?? []) {
+    const arr = peranMap.get(t.pengguna_id) ?? [];
+    arr.push(t.peran);
+    peranMap.set(t.pengguna_id, arr);
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <JudulHalaman
         judul="Pengguna"
-        keterangan="Semua akun terdaftar. Naikkan peran seseorang menjadi ustadzah agar bisa membimbing angkatan."
+        keterangan="Semua akun terdaftar. Naikkan peran seseorang menjadi ustadzah agar bisa membimbing rombel."
       />
 
       <nav className="mb-6 flex flex-wrap gap-2">
@@ -68,7 +97,7 @@ export default async function AdminPenggunaPage({
               <TableRow>
                 <TableHead>Nama</TableHead>
                 <TableHead>WhatsApp</TableHead>
-                <TableHead>Kota</TableHead>
+                <TableHead>Tempat Lahir</TableHead>
                 <TableHead className="text-right">Kelas</TableHead>
                 <TableHead>Bergabung</TableHead>
                 <TableHead>Peran</TableHead>
@@ -109,7 +138,7 @@ export default async function AdminPenggunaPage({
                     <TableCell>
                       <PemilihPeran
                         penggunaId={p.id}
-                        peran={p.peran}
+                        peranList={peranMap.get(p.id) ?? []}
                         diriSendiri={p.id === admin.id}
                       />
                     </TableCell>

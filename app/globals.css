@@ -53,7 +53,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Palet MQ Ummina: hijau zamrud (utama) + emas (aksen), nuansa madrasah. */
+/* Palet Madrasah Quran Nurul Musthofa: hijau zamrud dan emas. */
 :root {
   --background: oklch(0.995 0.004 150);
   --foreground: oklch(0.2 0.02 160);
@@ -163,4 +163,55 @@
       transparent 0
     );
   background-size: 22px 22px;
+}
+
+/* Landing page: ivory, zamrud, dan emas dari ilustrasi madrasah. */
+.landing-page {
+  --background: #fffdf8;
+  --foreground: #173f36;
+  --card: #ffffff;
+  --card-foreground: #173f36;
+  --primary: #245b49;
+  --primary-foreground: #fffdf8;
+  --secondary: #edf1e7;
+  --muted-foreground: #617166;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.landing-hero {
+  background: radial-gradient(ellipse at 85% 30%, #e6ead8 0%, transparent 50%),
+    linear-gradient(120deg, #fffdf8, #f5f0e1);
+}
+
+.landing-eyebrow {
+  color: #87703e;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  line-height: 1.8;
+}
+
+.landing-arch {
+  border: 1px solid #bfab73;
+  border-radius: 50% 50% 3rem 3rem;
+  background: linear-gradient(155deg, #e2e9d9, #f3eedc 80%);
+  box-shadow: 0 0 0 12px #faf7eb, 0 0 0 13px #d8cba966;
+}
+
+.landing-arch::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border: 1px solid #bfab7340;
+  border-radius: inherit;
+}
+
+.landing-feature {
+  border-top: 2px solid #c6b17b;
+  background: linear-gradient(150deg, #ffffff, #f9f8f1);
+}
+
+.landing-cta {
+  background: radial-gradient(ellipse at top right, #e0e8d6, transparent 65%), #f5f1e5;
 }

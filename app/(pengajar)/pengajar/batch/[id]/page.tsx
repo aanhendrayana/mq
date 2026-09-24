@@ -14,18 +14,20 @@ import {
 import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { JudulHalaman } from "@/components/dasbor/judul-halaman";
 import { DialogSesi } from "@/components/pengajar/dialog-sesi";
-import { wajibPengajar } from "@/lib/auth";
+import { TombolTerapkanTemplate } from "@/components/pengajar/tombol-terapkan-template";
+import { aksesPenuhPengajaran, wajibPembimbingRombel } from "@/lib/pengajar";
 import { buatKlienServer } from "@/lib/db/server";
 import { tanggalJam } from "@/lib/format";
 import { waktuPermintaan } from "@/lib/waktu";
 
-export const metadata: Metadata = { title: "Kelola Angkatan" };
+export const metadata: Metadata = { title: "Kelola Rombel" };
 
 export default async function DetailBatchPage({
   params,
 }: PageProps<"/pengajar/batch/[id]">) {
   const { id } = await params;
-  await wajibPengajar();
+  const pengguna = await wajibPembimbingRombel(id);
+  const aksesPenuh = aksesPenuhPengajaran(pengguna);
   const db = await buatKlienServer();
 
   const { data: batch } = await db
@@ -64,23 +66,26 @@ export default async function DetailBatchPage({
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <TautanTombol href="/pengajar" variant="ghost" size="sm" className="mb-4 -ml-2">
         <ArrowLeft className="size-4" />
-        Angkatan Saya
+        Rombel Saya
       </TautanTombol>
 
       <JudulHalaman
         judul={batch.nama}
         keterangan={`${batch.courses?.judul}${batch.jadwal_ringkas ? ` · ${batch.jadwal_ringkas}` : ""}`}
         aksi={
-          <DialogSesi
-            batchId={batch.id}
-            pertemuanBerikut={pertemuanBerikut}
-            pemicu={
-              <>
-                <CalendarPlus className="size-4" />
-                Tambah Pertemuan
-              </>
-            }
-          />
+          <div className="flex flex-wrap gap-2">
+            {aksesPenuh && <TombolTerapkanTemplate batchId={batch.id} />}
+            <DialogSesi
+              batchId={batch.id}
+              pertemuanBerikut={pertemuanBerikut}
+              pemicu={
+                <>
+                  <CalendarPlus className="size-4" />
+                  Tambah Pertemuan
+                </>
+              }
+            />
+          </div>
         }
       />
 
@@ -99,8 +104,13 @@ export default async function DetailBatchPage({
             return (
               <Card key={s.id} className="flex-row flex-wrap items-center gap-3 p-4">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">
+                  <p className="flex flex-wrap items-center gap-1.5 text-sm font-medium">
                     Pertemuan {s.pertemuan_ke}: {s.judul}
+                    {s.template_pertemuan_id && (
+                      <Badge variant="outline" className="font-normal text-muted-foreground">
+                        Dari template
+                      </Badge>
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {tanggalJam(s.mulai_at)} · {s.durasi_menit} menit
@@ -127,6 +137,7 @@ export default async function DetailBatchPage({
                     batchId={batch.id}
                     pertemuanBerikut={s.pertemuan_ke}
                     sesi={s}
+                    terkunci={Boolean(s.template_pertemuan_id) && !aksesPenuh}
                     pemicu="Ubah"
                     varian="outline"
                   />
@@ -153,7 +164,7 @@ export default async function DetailBatchPage({
             <TableHeader>
               <TableRow>
                 <TableHead>Nama</TableHead>
-                <TableHead>Kota</TableHead>
+                <TableHead>Tempat Lahir</TableHead>
                 <TableHead>WhatsApp</TableHead>
                 <TableHead className="text-right">Kehadiran</TableHead>
               </TableRow>
@@ -162,7 +173,7 @@ export default async function DetailBatchPage({
               {(enroll ?? []).length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="py-10 text-center text-muted-foreground">
-                    Belum ada santriwati di angkatan ini.
+                    Belum ada santriwati di rombel ini.
                   </TableCell>
                 </TableRow>
               ) : (

@@ -3,6 +3,7 @@ import { CalendarDays, CircleCheck, CircleX, Clock, Video } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
+import { PemutarLampiran } from "@/components/dasbor/pemutar-lampiran";
 import { TombolGabung } from "@/components/belajar/tombol-gabung";
 import { wajibMasuk } from "@/lib/auth";
 import { buatKlienServer } from "@/lib/db/server";
@@ -32,7 +33,7 @@ export default async function JadwalPage() {
 
   const idBatch = (enroll ?? []).map((e) => e.batch_id).filter(Boolean) as string[];
 
-  const [{ data: sesi }, { data: kehadiran }, { data: angkatan }] = idBatch.length
+  const [{ data: sesi }, { data: kehadiran }, { data: rombel }] = idBatch.length
     ? await Promise.all([
         db
           .from("sesi_halaqah")
@@ -57,18 +58,18 @@ export default async function JadwalPage() {
     .reverse();
 
   const petaHadir = new Map((kehadiran ?? []).map((k) => [k.sesi_id, k]));
-  const petaBatch = new Map((angkatan ?? []).map((b) => [b.id, b]));
+  const petaBatch = new Map((rombel ?? []).map((b) => [b.id, b]));
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <JudulHalaman
         judul="Jadwal Halaqah"
-        keterangan="Pertemuan setoran bacaan bersama ustadzah pembimbing angkatan Anda."
+        keterangan="Pertemuan setoran bacaan bersama ustadzah pembimbing rombel Anda."
       />
 
-      {angkatan && angkatan.length > 0 && (
+      {rombel && rombel.length > 0 && (
         <div className="mb-8 grid gap-3 sm:grid-cols-2">
-          {angkatan.map((b) => (
+          {rombel.map((b) => (
             <Card key={b.id} className="gap-1 p-4">
               <p className="text-xs text-muted-foreground">{b.courses?.judul}</p>
               <p className="font-heading font-semibold">{b.nama}</p>
@@ -86,8 +87,8 @@ export default async function JadwalPage() {
       {idBatch.length === 0 ? (
         <KeadaanKosong
           ikon={CalendarDays}
-          judul="Belum tergabung di angkatan"
-          keterangan="Anda belum ditempatkan pada angkatan halaqah mana pun. Admin akan menempatkan Anda setelah pembayaran diverifikasi."
+          judul="Belum tergabung di rombel"
+          keterangan="Anda belum ditempatkan pada rombel halaqah mana pun. Admin akan menempatkan Anda setelah pembayaran diverifikasi."
         />
       ) : (
         <>
@@ -121,6 +122,8 @@ export default async function JadwalPage() {
                       {s.materi}
                     </p>
                   )}
+
+                  <PemutarLampiran lampiran={s.lampiran} />
 
                   <TombolGabung mulaiAt={s.mulai_at} link={s.link_meeting} />
                 </Card>

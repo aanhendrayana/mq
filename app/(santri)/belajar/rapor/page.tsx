@@ -14,8 +14,11 @@ import {
 import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { GrafikRapor, type TitikRapor } from "@/components/belajar/grafik-rapor";
 import { TautanTombol } from "@/components/ui/tautan-tombol";
+import { eq, inArray } from "drizzle-orm";
 import { wajibMasuk } from "@/lib/auth";
 import { buatKlienServer } from "@/lib/db/server";
+import { db as drizzleDb } from "@/lib/db";
+import { courses, programs } from "@/lib/db/schema";
 import { ASPEK_NILAI, predikat } from "@/lib/konstanta";
 import { tanggal } from "@/lib/format";
 import type { PenilaianSetoran, RingkasanCapaian } from "@/lib/database.types";
@@ -33,9 +36,21 @@ export default async function RaporPage() {
 
   const { data: enroll } = await db
     .from("enrollments")
-    .select("id, course_id, courses(judul, jenjang)")
+    .select("id, course_id, courses(judul)")
     .eq("santri_id", pengguna.id)
     .neq("status", "berhenti");
+
+  // Jenjang kini di level program — shim `courses(...)` tidak mendukung embed
+  // berjenjang, jadi diambil terpisah lewat drizzle.
+  const idKelas = [...new Set((enroll ?? []).map((e) => e.course_id))];
+  const jenjangRows = idKelas.length
+    ? await drizzleDb
+        .select({ courseId: courses.id, jenjang: programs.jenjang })
+        .from(courses)
+        .innerJoin(programs, eq(courses.programId, programs.id))
+        .where(inArray(courses.id, idKelas))
+    : [];
+  const petaJenjang = new Map(jenjangRows.map((r) => [r.courseId, r.jenjang]));
 
   const { data: penilaian } = await db
     .from("penilaian_setoran")
@@ -96,8 +111,8 @@ export default async function RaporPage() {
                 <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h2 className="font-heading text-xl font-bold">{e.courses?.judul}</h2>
-                    {e.courses?.jenjang && (
-                      <p className="text-sm text-muted-foreground">{e.courses.jenjang}</p>
+                    {petaJenjang.get(e.course_id) && (
+                      <p className="text-sm text-muted-foreground">{petaJenjang.get(e.course_id)}</p>
                     )}
                   </div>
                   {milik.length > 0 && (

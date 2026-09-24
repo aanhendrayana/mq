@@ -34,9 +34,9 @@ export type LangkahAlur = { judul: string; isi: string };
 const CADANGAN = {
   kontak: {
     whatsapp: "628000000000",
-    email: "info@mqummina.id",
+    email: "info@nurulmusthofa.id",
     alamat: "Indonesia",
-    instagram: "mqummina",
+    instagram: "nurulmusthofa",
   } satisfies Kontak,
   rekening: {
     bank: "—",

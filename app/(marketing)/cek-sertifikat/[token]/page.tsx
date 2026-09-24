@@ -31,7 +31,7 @@ export default async function HasilVerifikasiPage({
           <h1 className="font-heading text-2xl font-bold">Sertifikat tidak ditemukan</h1>
           <p className="leading-relaxed text-muted-foreground">
             Kode verifikasi ini tidak cocok dengan sertifikat mana pun yang
-            diterbitkan Madrasah Qur&apos;an Ummina. Periksa kembali penulisan
+            diterbitkan Madrasah Quran Nurul Musthofa Perum Safira. Periksa kembali penulisan
             kodenya, atau hubungi kami bila Anda yakin kode ini benar.
           </p>
           <div className="mt-2 flex flex-wrap justify-center gap-2">
@@ -52,7 +52,7 @@ export default async function HasilVerifikasiPage({
           <BadgeCheck className="size-11" />
           <h1 className="font-heading text-2xl font-bold">Sertifikat Sah</h1>
           <p className="text-sm text-primary-foreground/80">
-            Diterbitkan oleh Madrasah Qur&apos;an Ummina
+            Diterbitkan oleh Madrasah Quran Nurul Musthofa Perum Safira
           </p>
         </div>
 

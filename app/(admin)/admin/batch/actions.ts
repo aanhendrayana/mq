@@ -9,7 +9,7 @@ export type HasilBatch = { pesan?: string; sukses?: string } | undefined;
 
 const skema = z.object({
   course_id: z.uuid("Pilih kelas."),
-  nama: z.string().trim().min(3, "Nama angkatan minimal 3 huruf."),
+  nama: z.string().trim().min(3, "Nama rombel minimal 3 huruf."),
   ustadz_id: z.union([z.uuid(), z.literal("")]).optional(),
   tgl_mulai: z.string().optional(),
   tgl_selesai: z.string().optional(),
@@ -45,7 +45,7 @@ export async function simpanBatchAction(
   const db = await buatKlienServer();
 
   if (id) {
-    // Kelas sebuah angkatan tidak boleh berpindah setelah ada santriwati di
+    // Kelas sebuah rombel tidak boleh berpindah setelah ada santriwati di
     // dalamnya: FK gabungan (batch_id, course_id) pada `enrollments` akan
     // menolaknya, dan diam-diam memindahkan santriwati juga bukan yang diinginkan.
     const { count } = await db
@@ -61,7 +61,7 @@ export async function simpanBatchAction(
 
     if ((count ?? 0) > 0 && lama && lama.course_id !== d.course_id) {
       return {
-        pesan: `Angkatan ini sudah berisi ${count} santriwati, jadi kelasnya tidak bisa diganti.`,
+        pesan: `Rombel ini sudah berisi ${count} santriwati, jadi kelasnya tidak bisa diganti.`,
       };
     }
   }
@@ -74,13 +74,13 @@ export async function simpanBatchAction(
 
   revalidatePath("/admin/batch");
   revalidatePath("/pengajar");
-  return { sukses: "Angkatan tersimpan." };
+  return { sukses: "Rombel tersimpan." };
 }
 
 /**
- * Menempatkan seorang santriwati ke sebuah angkatan.
+ * Menempatkan seorang santriwati ke sebuah rombel.
  *
- * Diperlukan ketika santriwati mendaftar sebelum angkatannya dibuka, atau ketika
+ * Diperlukan ketika santriwati mendaftar sebelum rombelnya dibuka, atau ketika
  * ia perlu dipindahkan (mis. jadwalnya bentrok).
  */
 export async function tempatkanSantriAction(
@@ -96,7 +96,7 @@ export async function tempatkanSantriAction(
       .select("kuota, course_id")
       .eq("id", batchId)
       .maybeSingle();
-    if (!batch) return { pesan: "Angkatan tidak ditemukan." };
+    if (!batch) return { pesan: "Rombel tidak ditemukan." };
 
     const { count } = await db
       .from("enrollments")
@@ -105,7 +105,7 @@ export async function tempatkanSantriAction(
       .neq("status", "berhenti");
 
     if ((count ?? 0) >= batch.kuota) {
-      return { pesan: `Kuota angkatan sudah penuh (${count}/${batch.kuota}).` };
+      return { pesan: `Kuota rombel sudah penuh (${count}/${batch.kuota}).` };
     }
   }
 
@@ -118,5 +118,5 @@ export async function tempatkanSantriAction(
 
   revalidatePath("/admin/batch");
   revalidatePath("/belajar/jadwal");
-  return { sukses: batchId ? "Santriwati ditempatkan." : "Santriwati dikeluarkan dari angkatan." };
+  return { sukses: batchId ? "Santriwati ditempatkan." : "Santriwati dikeluarkan dari rombel." };
 }

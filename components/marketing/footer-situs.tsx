@@ -34,7 +34,7 @@ export async function FooterSitus() {
     .order("urutan");
 
   return (
-    <footer className="mt-24 border-t bg-secondary/40">
+    <footer className="border-t bg-secondary/40">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-4">
           <Logo />

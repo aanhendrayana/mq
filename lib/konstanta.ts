@@ -7,27 +7,78 @@
  */
 
 export const SITUS = {
-  nama: "Madrasah Qur'an Ummina",
-  namaPendek: "MQ Ummina",
+  nama: "Madrasah Quran Nurul Musthofa Perum Safira",
+  namaPendek: "Madrasah Quran Nurul Musthofa",
   deskripsi:
-    "Madrasah Qur'an daring khusus muslimah. Belajar membaca Al-Qur'an bersama ustadzah pembimbing: materi video terstruktur, halaqah setoran langsung, rapor tahsin, dan sertifikat.",
+    "Madrasah Quran daring khusus muslimah di Perum Safira. Belajar membaca Al-Quran bersama ustadzah pembimbing: materi video terstruktur, halaqah setoran langsung, rapor tahsin, dan sertifikat.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
 } as const;
 
-/** Peran pengguna. Selaras dengan enum `peran_pengguna` di database. */
+/**
+ * Peran pengguna. Selaras dengan enum `peran_pengguna` di database.
+ *
+ * Satu akun bisa memegang BEBERAPA peran sekaligus (mis. ustadzah yang juga
+ * ikut kelas sebagai santriwati) — lihat tabel `pengguna_peran` di
+ * lib/db/schema.ts. Karena itu di seluruh kode, peran seorang pengguna selalu
+ * berupa array (`Peran[]`), bukan satu nilai tunggal.
+ */
 export const PERAN = {
+  TAMU: "tamu",
   SANTRI: "santri",
   USTADZ: "ustadz",
+  UMMI: "ummi",
   ADMIN: "admin",
 } as const;
 export type Peran = (typeof PERAN)[keyof typeof PERAN];
 
-/** Rute awal setelah login, per peran. */
-export const BERANDA_PERAN: Record<Peran, string> = {
-  santri: "/belajar",
-  ustadz: "/pengajar",
-  admin: "/admin",
+/** Label tampilan tiap peran. */
+export const LABEL_PERAN: Record<Peran, string> = {
+  tamu: "Tamu",
+  santri: "Santriwati",
+  ustadz: "Ustadzah Pembimbing",
+  ummi: "Ummi Rifa",
+  admin: "Administrator",
 };
+
+/**
+ * Dua peran tertinggi dikunci ke satu email tertentu masing-masing — bukan
+ * peran generik yang bisa dipegang siapa saja seperti Santri/Ustadzah.
+ * Dipakai `ubahPeranAction` untuk menolak menempelkannya ke akun lain.
+ */
+export const EMAIL_KHUSUS_PERAN: Partial<Record<Peran, string>> = {
+  ummi: "mq.ummina@gmail.com",
+  admin: "aanhendrayana@gmail.com",
+};
+
+/** Peran yang berarti "akses penuh ke semuanya" — dipakai gerbang admin. */
+export const PERAN_AKSES_PENUH: Peran[] = ["ummi", "admin"];
+
+/**
+ * Rute dasbor per peran, dari yang paling diutamakan. Untuk akun berperan
+ * ganda (mis. Ustadzah + Santri), urutan ini yang menentukan ke mana ia
+ * diantar setelah masuk.
+ */
+const PRIORITAS_BERANDA: { peran: Peran; href: string }[] = [
+  { peran: "admin", href: "/admin" },
+  { peran: "ummi", href: "/admin" },
+  { peran: "ustadz", href: "/pengajar" },
+  { peran: "santri", href: "/belajar" },
+  { peran: "tamu", href: "/belajar" },
+];
+
+/** Rute dasbor yang cocok untuk kombinasi peran seorang pengguna. */
+export function berandaUntukPeran(peranList: readonly Peran[]): string {
+  for (const { peran, href } of PRIORITAS_BERANDA) {
+    if (peranList.includes(peran)) return href;
+  }
+  return "/belajar";
+}
+
+/** Label gabungan untuk ditampilkan di menu akun, mis. "Ustadzah Pembimbing & Santriwati". */
+export function labelPeranList(peranList: readonly Peran[]): string {
+  if (peranList.length === 0) return LABEL_PERAN.tamu;
+  return peranList.map((p) => LABEL_PERAN[p]).join(" & ");
+}
 
 /** Empat aspek penilaian setoran bacaan. Urutan ini dipakai di form & rapor. */
 export const ASPEK_NILAI = [

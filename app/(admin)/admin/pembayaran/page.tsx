@@ -53,7 +53,7 @@ export default async function PembayaranPage({
     nama_santri: o.profiles?.nama ?? "(tanpa nama)",
     no_hp: o.profiles?.no_hp ?? null,
     judul_kelas: o.courses?.judul ?? "—",
-    nama_angkatan: o.batches?.nama ?? null,
+    nama_rombel: o.batches?.nama ?? null,
   }));
 
   // Daftar yang butuh tindakan ditampilkan sebagai kartu penuh (dengan bukti

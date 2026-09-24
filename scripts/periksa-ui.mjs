@@ -1,7 +1,11 @@
 /**
  * Pemeriksa UI di browser sungguhan.
  *
- *   node scripts/periksa-ui.mjs <email> <sandi> [alamat]
+ *   node scripts/periksa-ui.mjs <email> [_ <alamat>]
+ *
+ * Sesinya dipalsukan langsung sebagai JWT (bukan lewat form masuk sungguhan),
+ * jadi kata sandi tidak diperlukan — peranList-nya diambil dari database
+ * sungguhan (`pengguna_peran`) berdasarkan email itu.
  *
  * Membuka halaman sebagai pengguna yang sudah masuk, mengklik menu akun, lalu
  * melaporkan SETIAP galat konsol, galat halaman, dan permintaan jaringan yang
@@ -10,19 +14,30 @@
  */
 import { chromium } from "playwright";
 import { SignJWT } from "jose";
+import postgres from "postgres";
 
-const [email, sandi, alamat = "http://localhost:3000/"] = process.argv.slice(2);
+const [email, , alamat = "http://localhost:3000/"] = process.argv.slice(2);
 const KUNCI_RAHASIA = new TextEncoder().encode(
   process.env.AUTH_SECRET || "1cc13c80c46047f066addca0d6d3b1fe8f5705774573a927cda6b9974fa684cc"
 );
 
-/** Buat token sesi JWT mq_session langsung. */
-async function kukiUntuk(email, sandi) {
+/** Buat token sesi JWT mq_session langsung, dengan peranList akun sungguhan. */
+async function kukiUntuk(email) {
+  const sql = postgres(
+    process.env.DATABASE_URL || "postgresql://aanhendrayana@localhost:5432/mq_ummina"
+  );
+  const [user] = await sql`SELECT id, email FROM users WHERE email = ${email};`;
+  if (!user) {
+    await sql.end();
+    throw new Error(`Tidak ada akun dengan email ${email}`);
+  }
+  const tag = await sql`SELECT peran FROM pengguna_peran WHERE pengguna_id = ${user.id};`;
+  await sql.end();
+
   const jwt = await new SignJWT({
-    sub: "admin-id",
-    email: email || "admin@nurulmusthofa.id",
-    peran: "admin",
-    nama: "Administrator",
+    id: user.id,
+    email: user.email,
+    peranList: tag.map((t) => t.peran),
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -41,7 +56,7 @@ async function kukiUntuk(email, sandi) {
 
 const browser = await chromium.launch();
 const konteks = await browser.newContext({ viewport: { width: 1280, height: 900 } });
-if (email) await konteks.addCookies(await kukiUntuk(email, sandi));
+if (email) await konteks.addCookies(await kukiUntuk(email));
 
 const halaman = await konteks.newPage();
 const galat = [];

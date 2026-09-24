@@ -1,8 +1,14 @@
-import { penggunaSekarang } from "@/lib/auth";
+import { penggunaSekarang, type PenggunaAktif } from "@/lib/auth";
+import { PERAN_AKSES_PENUH } from "@/lib/konstanta";
 import fs from "fs";
 import path from "path";
 import postgres from "postgres";
 import type { Database } from "@/lib/database.types";
+
+/** Ummi Rifa dan Admin sama-sama berhak menjalankan aksi level admin di sini. */
+function punyaAksesPenuh(pengguna: PenggunaAktif): boolean {
+  return pengguna.profil.peranList.some((p) => PERAN_AKSES_PENUH.includes(p));
+}
 
 const connectionString =
   process.env.DATABASE_URL || "postgresql://aanhendrayana@localhost:5432/mq_ummina";
@@ -225,7 +231,12 @@ export class TableQueryBuilder<Row = any> implements PromiseLike<{ data: (Row & 
 
         let selectSql = "*";
         if (this.selectCols && this.selectCols !== "*") {
-          const cleaned = this.selectCols.replace(/[a-zA-Z0-9_]+(!inner)?\([^)]*\)/g, "").trim();
+          // "!inner" dan "!fkey_name" (sintaks disambiguasi FK ala Supabase,
+          // mis. profiles!sertifikat_santri_id_fkey(...)) sama-sama harus
+          // dibuang di sini — bukan hanya "!inner" — agar tidak ikut terkirim
+          // sebagai literal ke SQL (nama relasinya sendiri diproses terpisah
+          // oleh blok "Relational embedding" di bawah).
+          const cleaned = this.selectCols.replace(/[a-zA-Z0-9_]+(![a-zA-Z0-9_]+)?\([^)]*\)/g, "").trim();
           const cols = cleaned
             .split(",")
             .map((c) => c.trim())
@@ -264,8 +275,10 @@ export class TableQueryBuilder<Row = any> implements PromiseLike<{ data: (Row & 
             }
           }
 
-          // Embed profiles
-          if (this.selectCols.includes("profiles(")) {
+          // Embed profiles — juga cocokkan sintaks disambiguasi FK ala
+          // Supabase (mis. "profiles!sertifikat_santri_id_fkey(nama)"),
+          // dipakai saat satu tabel punya lebih dari satu FK ke users.
+          if (/profiles(![a-zA-Z0-9_]+)?\(/.test(this.selectCols)) {
             const userIds = [
               ...new Set(
                 rows.map((r) => r.santri_id || r.ustadz_id || r.user_id || r.diverifikasi_oleh || r.id).filter(Boolean)
@@ -491,7 +504,11 @@ export class PostgresClient {
         const p_course = params.p_course;
         const p_batch = params.p_batch || null;
 
-        const courseRes = await sql`SELECT harga FROM courses WHERE id = ${p_course} AND is_published = true;`;
+        const courseRes = await sql`
+          SELECT p.harga FROM courses c
+          JOIN programs p ON p.id = c.program_id
+          WHERE c.id = ${p_course} AND c.is_published = true;
+        `;
         if (courseRes.length === 0) {
           return { data: null, error: { message: "Kelas tidak ditemukan atau belum terbit" } };
         }
@@ -537,7 +554,7 @@ export class PostgresClient {
 
       // 4. setujui_pesanan
       if (fnName === "setujui_pesanan") {
-        if (!pengguna || pengguna.profil.peran !== "admin") {
+        if (!pengguna || !punyaAksesPenuh(pengguna)) {
           return { data: null, error: { message: "Hanya admin yang boleh memverifikasi pembayaran" } };
         }
         const p_order = params.p_order;
@@ -564,12 +581,22 @@ export class PostgresClient {
           RETURNING *;
         `;
 
+        // Kelas pertama yang disetujui menandai ia bukan "tamu" lagi.
+        await sql`
+          INSERT INTO pengguna_peran (pengguna_id, peran)
+          VALUES (${o.santri_id}, 'santri')
+          ON CONFLICT (pengguna_id, peran) DO NOTHING;
+        `;
+        await sql`
+          DELETE FROM pengguna_peran WHERE pengguna_id = ${o.santri_id} AND peran = 'tamu';
+        `;
+
         return { data: enrollRes[0], error: null };
       }
 
       // 5. tolak_pesanan
       if (fnName === "tolak_pesanan") {
-        if (!pengguna || pengguna.profil.peran !== "admin") {
+        if (!pengguna || !punyaAksesPenuh(pengguna)) {
           return { data: null, error: { message: "Hanya admin yang boleh menolak pembayaran" } };
         }
         const { p_order, p_alasan } = params;
@@ -635,7 +662,7 @@ export class PostgresClient {
 
       // 7. terbitkan_sertifikat
       if (fnName === "terbitkan_sertifikat") {
-        if (!pengguna || pengguna.profil.peran !== "admin") {
+        if (!pengguna || !punyaAksesPenuh(pengguna)) {
           return { data: null, error: { message: "Hanya admin yang boleh menerbitkan sertifikat" } };
         }
         const { p_santri, p_course, p_rekap } = params;
@@ -665,10 +692,11 @@ export class PostgresClient {
         const { p_token } = params;
         const res = await sql`
           SELECT s.nomor, s.token_verifikasi, s.predikat, s.tgl_terbit,
-                 u.nama as nama_santri, c.judul as judul_kelas, c.jenjang
+                 u.nama as nama_santri, c.judul as judul_kelas, p.jenjang
           FROM sertifikat s
           JOIN users u ON u.id = s.santri_id
           JOIN courses c ON c.id = s.course_id
+          JOIN programs p ON p.id = c.program_id
           WHERE s.token_verifikasi = ${p_token}
           LIMIT 1;
         `;

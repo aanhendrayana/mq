@@ -12,7 +12,7 @@ export function TombolTempatkan({
   keluarkan,
 }: {
   enrollmentId: string;
-  /** null berarti mengeluarkan santriwati dari angkatannya. */
+  /** null berarti mengeluarkan santriwati dari rombelnya. */
   batchId: string | null;
   keluarkan?: boolean;
 }) {

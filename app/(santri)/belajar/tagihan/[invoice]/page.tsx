@@ -15,8 +15,11 @@ import { JudulHalaman } from "@/components/dasbor/judul-halaman";
 import { KartuTransfer } from "@/components/belajar/kartu-transfer";
 import { FormBukti } from "@/components/belajar/form-bukti";
 import { StatusPesananBadge } from "@/components/belajar/status-pesanan";
+import { eq } from "drizzle-orm";
 import { wajibMasuk } from "@/lib/auth";
 import { buatKlienServer } from "@/lib/db/server";
+import { db as drizzleDb } from "@/lib/db";
+import { courses, programs } from "@/lib/db/schema";
 import { ambilKontak, ambilRekening } from "@/lib/pengaturan";
 import { jarakWaktu, rupiah, tanggalJam } from "@/lib/format";
 
@@ -35,12 +38,20 @@ export default async function DetailTagihanPage({
 
   const { data: pesanan } = await db
     .from("orders")
-    .select("*, courses(judul, slug, jenjang), batches(nama, jadwal_ringkas)")
+    .select("*, courses(judul), batches(nama, jadwal_ringkas)")
     .eq("nomor_invoice", invoice)
     .eq("santri_id", pengguna.id)
     .maybeSingle();
 
   if (!pesanan) notFound();
+
+  // slug kini di level program — shim `courses(...)` tidak mendukung embed
+  // berjenjang, jadi diambil terpisah lewat drizzle.
+  const [programKelas] = await drizzleDb
+    .select({ slug: programs.slug })
+    .from(courses)
+    .innerJoin(programs, eq(courses.programId, programs.id))
+    .where(eq(courses.id, pesanan.course_id));
 
   const [rekening, kontak] = await Promise.all([ambilRekening(), ambilKontak()]);
   const bisaBayar =
@@ -125,7 +136,7 @@ export default async function DetailTagihanPage({
           </div>
           {pesanan.batches && (
             <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Angkatan</dt>
+              <dt className="text-muted-foreground">Rombel</dt>
               <dd className="text-right font-medium">
                 {pesanan.batches.nama}
                 {pesanan.batches.jadwal_ringkas && (
@@ -173,8 +184,8 @@ export default async function DetailTagihanPage({
         </div>
       )}
 
-      {pesanan.status === "lunas" && pesanan.courses && (
-        <TautanTombol href={`/belajar/${pesanan.courses.slug}`} size="lg" className="h-11 w-full">
+      {pesanan.status === "lunas" && pesanan.courses && programKelas && (
+        <TautanTombol href={`/belajar/${programKelas.slug}`} size="lg" className="h-11 w-full">
           Mulai Belajar
         </TautanTombol>
       )}

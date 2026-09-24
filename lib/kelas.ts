@@ -4,7 +4,21 @@ import { eq, and, asc, inArray } from "drizzle-orm";
 import type { Course, PelajaranPublik, Program } from "@/lib/database.types";
 
 export type KelasRingkas = Course & {
-  programs: Pick<Program, "slug" | "nama"> | null;
+  programs: Pick<
+    Program,
+    | "slug"
+    | "nama"
+    | "deskripsi_lengkap"
+    | "apa_yang_dipelajari"
+    | "untuk_siapa"
+    | "thumbnail_url"
+    | "jenjang"
+    | "subjudul"
+    | "prasyarat"
+    | "harga"
+    | "harga_coret"
+    | "durasi_pekan"
+  > | null;
   jumlah_pelajaran: number;
   total_detik: number;
 };
@@ -17,10 +31,7 @@ export async function daftarKelas(opsi?: {
   const rows = await db
     .select({
       course: courses,
-      program: {
-        slug: programs.slug,
-        nama: programs.nama,
-      },
+      program: programs,
     })
     .from(courses)
     .innerJoin(programs, eq(courses.programId, programs.id))
@@ -29,7 +40,7 @@ export async function daftarKelas(opsi?: {
         ? and(eq(courses.isPublished, true), eq(programs.slug, opsi.program))
         : eq(courses.isPublished, true)
     )
-    .orderBy(asc(courses.urutan))
+    .orderBy(asc(programs.urutan))
     .limit(opsi?.batas ?? 100);
 
   if (!rows.length) return [];
@@ -45,31 +56,33 @@ export async function daftarKelas(opsi?: {
 
   return rows.map((r) => {
     const c = r.course;
+    const p = r.program;
     const milik = lessonRows.filter((l) => l.courseId === c.id);
     const courseFormatted: Course = {
       id: c.id,
       program_id: c.programId,
-      slug: c.slug,
       judul: c.judul,
-      subjudul: c.subjudul,
-      jenjang: c.jenjang,
-      deskripsi: c.deskripsi,
-      apa_yang_dipelajari: c.apaYangDipelajari as string[],
-      untuk_siapa: c.untukSiapa as string[],
-      prasyarat: c.prasyarat,
-      thumbnail_url: c.thumbnailUrl,
-      harga: c.harga,
-      harga_coret: c.hargaCoret,
-      durasi_pekan: c.durasiPekan,
       is_published: c.isPublished,
-      urutan: c.urutan,
       dibuat_at: c.dibuatAt.toISOString(),
       diubah_at: c.diubahAt.toISOString(),
     };
 
     return {
       ...courseFormatted,
-      programs: r.program,
+      programs: {
+        slug: p.slug,
+        nama: p.nama,
+        deskripsi_lengkap: p.deskripsiLengkap,
+        apa_yang_dipelajari: p.apaYangDipelajari as string[],
+        untuk_siapa: p.untukSiapa as string[],
+        thumbnail_url: p.thumbnailUrl,
+        jenjang: p.jenjang,
+        subjudul: p.subjudul,
+        prasyarat: p.prasyarat,
+        harga: p.harga,
+        harga_coret: p.hargaCoret,
+        durasi_pekan: p.durasiPekan,
+      },
       jumlah_pelajaran: milik.length,
       total_detik: milik.reduce((sum, l) => sum + (l.durasiDetik ?? 0), 0),
     };

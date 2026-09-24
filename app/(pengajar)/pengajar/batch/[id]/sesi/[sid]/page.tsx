@@ -4,8 +4,9 @@ import { ArrowLeft, CalendarDays } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { JudulHalaman } from "@/components/dasbor/judul-halaman";
+import { PemutarLampiran } from "@/components/dasbor/pemutar-lampiran";
 import { TabelPenilaian, type BarisSantri } from "@/components/pengajar/tabel-penilaian";
-import { wajibPengajar } from "@/lib/auth";
+import { wajibPembimbingRombel } from "@/lib/pengajar";
 import { buatKlienServer } from "@/lib/db/server";
 import { tanggalJam } from "@/lib/format";
 
@@ -15,7 +16,7 @@ export default async function SesiPage({
   params,
 }: PageProps<"/pengajar/batch/[id]/sesi/[sid]">) {
   const { id, sid } = await params;
-  await wajibPengajar();
+  await wajibPembimbingRombel(id);
   const db = await buatKlienServer();
 
   const { data: sesi } = await db
@@ -88,11 +89,16 @@ export default async function SesiPage({
         {sesi.materi && (
           <p className="text-sm text-muted-foreground">Materi: {sesi.materi}</p>
         )}
+        {sesi.lampiran.length > 0 && (
+          <div className="mt-2">
+            <PemutarLampiran lampiran={sesi.lampiran} />
+          </div>
+        )}
       </Card>
 
       {awal.length === 0 ? (
         <Card className="p-8 text-center text-sm text-muted-foreground">
-          Belum ada santriwati di angkatan ini, jadi tidak ada yang bisa diabsen.
+          Belum ada santriwati di rombel ini, jadi tidak ada yang bisa diabsen.
         </Card>
       ) : (
         <TabelPenilaian

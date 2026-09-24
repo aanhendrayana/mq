@@ -6,19 +6,19 @@ import { durasi, rupiah } from "@/lib/format";
 import type { KelasRingkas } from "@/lib/kelas";
 
 export function KartuKelas({ kelas }: { kelas: KelasRingkas }) {
+  const harga = kelas.programs?.harga ?? 0;
+  const hargaCoret = kelas.programs?.harga_coret ?? null;
   const diskon =
-    kelas.harga_coret && kelas.harga_coret > kelas.harga
-      ? Math.round((1 - kelas.harga / kelas.harga_coret) * 100)
-      : null;
+    hargaCoret && hargaCoret > harga ? Math.round((1 - harga / hargaCoret) * 100) : null;
 
   return (
     <Card className="group flex flex-col overflow-hidden p-0 transition-shadow hover:shadow-md">
-      <Link href={`/program/${kelas.slug}`} className="flex flex-1 flex-col">
+      <Link href={`/program/${kelas.programs?.slug ?? ""}`} className="flex flex-1 flex-col">
         <div className="pola-islami relative aspect-16/9 overflow-hidden bg-secondary">
-          {kelas.thumbnail_url ? (
+          {kelas.programs?.thumbnail_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={kelas.thumbnail_url}
+              src={kelas.programs.thumbnail_url}
               alt=""
               className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             />
@@ -43,9 +43,9 @@ export function KartuKelas({ kelas }: { kelas: KelasRingkas }) {
                 {kelas.programs.nama}
               </Badge>
             )}
-            {kelas.jenjang && (
+            {kelas.programs?.jenjang && (
               <Badge variant="outline" className="font-normal">
-                {kelas.jenjang}
+                {kelas.programs.jenjang}
               </Badge>
             )}
           </div>
@@ -54,9 +54,9 @@ export function KartuKelas({ kelas }: { kelas: KelasRingkas }) {
             {kelas.judul}
           </h3>
 
-          {kelas.subjudul && (
+          {kelas.programs?.subjudul && (
             <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-              {kelas.subjudul}
+              {kelas.programs.subjudul}
             </p>
           )}
 
@@ -69,21 +69,21 @@ export function KartuKelas({ kelas }: { kelas: KelasRingkas }) {
               <Clock className="size-3.5" />
               {durasi(kelas.total_detik)}
             </span>
-            {kelas.durasi_pekan && (
+            {kelas.programs?.durasi_pekan && (
               <span className="flex items-center gap-1.5">
                 <CalendarDays className="size-3.5" />
-                {kelas.durasi_pekan} pekan
+                {kelas.programs.durasi_pekan} pekan
               </span>
             )}
           </div>
 
           <div className="flex items-baseline gap-2 border-t pt-3">
             <span className="font-heading text-xl font-bold text-primary">
-              {kelas.harga === 0 ? "Gratis" : rupiah(kelas.harga)}
+              {harga === 0 ? "Gratis" : rupiah(harga)}
             </span>
-            {kelas.harga_coret && kelas.harga_coret > kelas.harga && (
+            {hargaCoret && hargaCoret > harga && (
               <span className="text-sm text-muted-foreground line-through">
-                {rupiah(kelas.harga_coret)}
+                {rupiah(hargaCoret)}
               </span>
             )}
           </div>

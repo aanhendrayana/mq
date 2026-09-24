@@ -22,10 +22,10 @@ export function Logo({
         </svg>
       </span>
       <span className="flex flex-col leading-none">
-        <span className="font-heading text-[15px] font-semibold tracking-tight">
-          Madrasah Qur&apos;an
+        <span className="font-heading text-[14px] font-semibold tracking-tight">
+          Madrasah Quran Nurul Musthofa
         </span>
-        <span className="text-[13px] font-medium text-primary">Ummina</span>
+        <span className="text-[12px] font-medium text-primary">Perum Safira</span>
       </span>
       <span className="sr-only">{SITUS.nama}</span>
     </span>

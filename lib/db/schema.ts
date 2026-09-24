@@ -18,7 +18,13 @@ import { relations } from "drizzle-orm";
 // ---------------------------------------------------------------------
 // 1. ENUM
 // ---------------------------------------------------------------------
-export const peranPenggunaEnum = pgEnum("peran_pengguna", ["santri", "ustadz", "admin"]);
+export const peranPenggunaEnum = pgEnum("peran_pengguna", [
+  "tamu",
+  "santri",
+  "ustadz",
+  "ummi",
+  "admin",
+]);
 export const tipePelajaranEnum = pgEnum("tipe_pelajaran", ["video", "teks", "audio", "tugas"]);
 export const penyediaVideoEnum = pgEnum("penyedia_video", ["youtube", "bunny", "supabase"]);
 export const statusBatchEnum = pgEnum("status_batch", ["draf", "pendaftaran", "berjalan", "selesai"]);
@@ -41,7 +47,6 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   nama: text("nama").notNull().default(""),
   noHp: text("no_hp"),
-  peran: peranPenggunaEnum("peran").notNull().default("santri"),
   tglLahir: date("tgl_lahir"),
   kota: text("kota"),
   avatarUrl: text("avatar_url"),
@@ -49,8 +54,26 @@ export const users = pgTable("users", {
   dibuatAt: timestamp("dibuat_at", { withTimezone: true }).notNull().defaultNow(),
   diubahAt: timestamp("diubah_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
-  index("users_peran_idx").on(table.peran),
   index("users_email_idx").on(table.email),
+]);
+
+/**
+ * Peran seorang pengguna — satu akun bisa memegang beberapa sekaligus (mis.
+ * ustadzah yang juga ikut kelas sebagai santriwati). Karena itu peran TIDAK
+ * lagi jadi satu kolom di `users`, melainkan baris-baris di sini.
+ *
+ * "tamu" adalah keadaan bawaan pendaftar baru — belum ikut kelas apa pun.
+ * Begitu pembayaran kelas pertamanya disetujui admin (lihat `setujui_pesanan`
+ * di lib/db/klien.ts), tag ini diganti otomatis jadi "santri".
+ */
+export const penggunaPeran = pgTable("pengguna_peran", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  penggunaId: uuid("pengguna_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  peran: peranPenggunaEnum("peran").notNull(),
+  dibuatAt: timestamp("dibuat_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("pengguna_peran_unik").on(table.penggunaId, table.peran),
+  index("pengguna_peran_peran_idx").on(table.peran),
 ]);
 
 // ---------------------------------------------------------------------
@@ -60,34 +83,85 @@ export const programs = pgTable("programs", {
   id: uuid("id").primaryKey().defaultRandom(),
   slug: text("slug").notNull().unique(),
   nama: text("nama").notNull(),
+  // Ringkasan pendek — dipakai di badge/kartu kategori.
   deskripsi: text("deskripsi"),
   ikon: text("ikon"),
   urutan: integer("urutan").notNull().default(0),
-  dibuatAt: timestamp("dibuat_at", { withTimezone: true }).notNull().defaultNow(),
-});
-
-export const courses = pgTable("courses", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  programId: uuid("program_id").notNull().references(() => programs.id, { onDelete: "restrict" }),
-  slug: text("slug").notNull().unique(),
-  judul: text("judul").notNull(),
-  subjudul: text("subjudul"),
-  jenjang: text("jenjang"),
-  deskripsi: text("deskripsi"),
+  // Isian "sales page" dipindah ke sini dari courses: diisi sekali per
+  // program, otomatis terpakai untuk kelasnya — satu program = satu kelas
+  // jual (analoginya kelas 1 SD: materi matematika sama, tinggal beda
+  // rombel/seksi A/B/C/D lewat tabel `batches`).
+  deskripsiLengkap: text("deskripsi_lengkap"),
   apaYangDipelajari: jsonb("apa_yang_dipelajari").notNull().default([]),
   untukSiapa: jsonb("untuk_siapa").notNull().default([]),
-  prasyarat: text("prasyarat"),
   thumbnailUrl: text("thumbnail_url"),
+  jenjang: text("jenjang"),
+  subjudul: text("subjudul"),
+  prasyarat: text("prasyarat"),
   harga: integer("harga").notNull().default(0),
   hargaCoret: integer("harga_coret"),
   durasiPekan: integer("durasi_pekan"),
-  isPublished: boolean("is_published").notNull().default(false),
+  dibuatAt: timestamp("dibuat_at", { withTimezone: true }).notNull().defaultNow(),
+  diubahAt: timestamp("diubah_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Rencana pertemuan satu program (setara RPS) — dibuat Ummi Rifa/Admin,
+ * berlaku untuk SEMUA kelas & rombel di bawah program ini. Admin menyalin
+ * baris-baris ini jadi jadwal sesi_halaqah sungguhan lewat "Terapkan
+ * Template" pada sebuah rombel (lihat terapkanTemplateAction).
+ *
+ * Strukturnya sengaja meniru persis pola Bab & Pelajaran materi video
+ * (modules/lessons di bawah) — template_bab mengelompokkan beberapa
+ * template_pertemuan, sama seperti sebuah modul mengelompokkan pelajaran.
+ */
+export const templateBab = pgTable("template_bab", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  programId: uuid("program_id").notNull().references(() => programs.id, { onDelete: "cascade" }),
+  judul: text("judul").notNull(),
+  ringkasan: text("ringkasan"),
   urutan: integer("urutan").notNull().default(0),
+  dibuatAt: timestamp("dibuat_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index("template_bab_program_idx").on(table.programId, table.urutan),
+]);
+
+export const templatePertemuan = pgTable("template_pertemuan", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  babId: uuid("bab_id").notNull().references(() => templateBab.id, { onDelete: "cascade" }),
+  // Disalin dari template_bab.programId supaya bisa disaring langsung tanpa
+  // join — sama seperti lessons.courseId di samping lessons.moduleId.
+  programId: uuid("program_id").notNull().references(() => programs.id, { onDelete: "cascade" }),
+  pertemuanKe: integer("pertemuan_ke").notNull(),
+  judul: text("judul").notNull(),
+  materi: text("materi"),
+  durasiMenit: integer("durasi_menit").notNull().default(60),
+  // Materi tambahan (video YouTube, PDF, slide, audio, gambar) yang bisa
+  // "diputar" langsung di aplikasi — lihat lib/lampiran.ts.
+  lampiran: jsonb("lampiran").notNull().default([]),
+  dibuatAt: timestamp("dibuat_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("template_pertemuan_program_ke_unik").on(table.programId, table.pertemuanKe),
+  index("template_pertemuan_program_idx").on(table.programId),
+  index("template_pertemuan_bab_idx").on(table.babId, table.pertemuanKe),
+]);
+
+/**
+ * Satu program = satu kelas jual (lihat komentar di `programs` di atas).
+ * Slug, jenjang, subjudul, prasyarat, harga, durasi, dan urutan tampil
+ * semua pindah ke `programs` — kelas di sini tinggal wadah materi (bab &
+ * pelajaran, lihat modules/lessons) dan status terbit, terhubung 1:1 ke
+ * programnya lewat programId yang UNIK.
+ */
+export const courses = pgTable("courses", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  programId: uuid("program_id").notNull().unique().references(() => programs.id, { onDelete: "restrict" }),
+  judul: text("judul").notNull(),
+  isPublished: boolean("is_published").notNull().default(false),
   dibuatAt: timestamp("dibuat_at", { withTimezone: true }).notNull().defaultNow(),
   diubahAt: timestamp("diubah_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
-  index("courses_program_idx").on(table.programId),
-  index("courses_published_idx").on(table.isPublished, table.urutan),
+  index("courses_published_idx").on(table.isPublished),
 ]);
 
 export const modules = pgTable("modules", {
@@ -153,6 +227,18 @@ export const sesiHalaqah = pgTable("sesi_halaqah", {
   linkMeeting: text("link_meeting"),
   materi: text("materi"),
   catatan: text("catatan"),
+  // Materi tambahan (video YouTube, PDF, slide, audio, gambar) — disalin
+  // dari template_pertemuan.lampiran saat "Terapkan Template", tapi bisa
+  // ditambah sendiri untuk sesi yang dibuat manual (lihat lib/lampiran.ts).
+  lampiran: jsonb("lampiran").notNull().default([]),
+  // Terisi kalau sesi ini hasil salinan template program (lihat
+  // terapkanTemplateAction). Ustadzah biasa hanya boleh mengubah jadwal &
+  // link pada sesi yang templatePertemuanId-nya terisi — judul/materi
+  // terkunci ke template, cuma admin/Ummi Rifa yang boleh mengubahnya
+  // (lewat halaman template program).
+  templatePertemuanId: uuid("template_pertemuan_id").references(() => templatePertemuan.id, {
+    onDelete: "set null",
+  }),
   dibuatAt: timestamp("dibuat_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   index("sesi_halaqah_batch_idx").on(table.batchId, table.mulaiAt),
@@ -309,10 +395,39 @@ export const usersRelations = relations(users, ({ many }) => ({
   kehadiran: many(kehadiran),
   penilaian: many(penilaianSetoran),
   sertifikat: many(sertifikat),
+  peranList: many(penggunaPeran),
+}));
+
+export const penggunaPeranRelations = relations(penggunaPeran, ({ one }) => ({
+  pengguna: one(users, {
+    fields: [penggunaPeran.penggunaId],
+    references: [users.id],
+  }),
 }));
 
 export const programsRelations = relations(programs, ({ many }) => ({
   courses: many(courses),
+  templateBab: many(templateBab),
+  templatePertemuan: many(templatePertemuan),
+}));
+
+export const templateBabRelations = relations(templateBab, ({ one, many }) => ({
+  program: one(programs, {
+    fields: [templateBab.programId],
+    references: [programs.id],
+  }),
+  pertemuan: many(templatePertemuan),
+}));
+
+export const templatePertemuanRelations = relations(templatePertemuan, ({ one }) => ({
+  bab: one(templateBab, {
+    fields: [templatePertemuan.babId],
+    references: [templateBab.id],
+  }),
+  program: one(programs, {
+    fields: [templatePertemuan.programId],
+    references: [programs.id],
+  }),
 }));
 
 export const coursesRelations = relations(courses, ({ one, many }) => ({
@@ -363,6 +478,10 @@ export const sesiHalaqahRelations = relations(sesiHalaqah, ({ one, many }) => ({
   batch: one(batches, {
     fields: [sesiHalaqah.batchId],
     references: [batches.id],
+  }),
+  templatePertemuan: one(templatePertemuan, {
+    fields: [sesiHalaqah.templatePertemuanId],
+    references: [templatePertemuan.id],
   }),
   kehadiran: many(kehadiran),
   penilaian: many(penilaianSetoran),
@@ -417,7 +536,10 @@ export const sertifikatRelations = relations(sertifikat, ({ one }) => ({
 // Tipe entitas untuk inferensi TypeScript
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+export type PenggunaPeran = typeof penggunaPeran.$inferSelect;
 export type Program = typeof programs.$inferSelect;
+export type TemplateBab = typeof templateBab.$inferSelect;
+export type TemplatePertemuan = typeof templatePertemuan.$inferSelect;
 export type Course = typeof courses.$inferSelect;
 export type Module = typeof modules.$inferSelect;
 export type Lesson = typeof lessons.$inferSelect;

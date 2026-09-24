@@ -4,13 +4,14 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { ambilTokenDariCookie, verifikasiTokenSesi } from "@/lib/auth/session";
-import { BERANDA_PERAN, type Peran } from "@/lib/konstanta";
+import { berandaUntukPeran, type Peran } from "@/lib/konstanta";
 
 export type PenggunaProfil = {
   id: string;
   nama: string;
   no_hp: string | null;
-  peran: Peran;
+  /** Bisa lebih dari satu — lihat komentar di lib/konstanta.ts (PERAN). */
+  peranList: Peran[];
   tgl_lahir: string | null;
   kota: string | null;
   avatar_url: string | null;
@@ -37,6 +38,7 @@ export async function penggunaSekarang(): Promise<PenggunaAktif | null> {
 
   const user = await db.query.users.findFirst({
     where: eq(users.id, payload.id),
+    with: { peranList: true },
   });
 
   if (!user) return null;
@@ -45,7 +47,7 @@ export async function penggunaSekarang(): Promise<PenggunaAktif | null> {
     id: user.id,
     nama: user.nama,
     no_hp: user.noHp,
-    peran: user.peran as Peran,
+    peranList: user.peranList.map((p) => p.peran as Peran),
     tgl_lahir: user.tglLahir,
     kota: user.kota,
     avatar_url: user.avatarUrl,
@@ -72,16 +74,19 @@ export async function wajibMasuk(tujuan?: string): Promise<PenggunaAktif> {
 }
 
 /**
- * Wajib punya salah satu peran. Kalau perannya tidak cocok, dialihkan ke
- * beranda perannya sendiri.
+ * Wajib punya salah satu dari peran yang diminta (cukup satu, karena
+ * pengguna bisa berperan ganda). Kalau tak satu pun cocok, dialihkan ke
+ * beranda yang sesuai kombinasi perannya sendiri.
  */
 export async function wajibPeran(...peran: Peran[]): Promise<PenggunaAktif> {
   const pengguna = await wajibMasuk();
-  if (!peran.includes(pengguna.profil.peran)) {
-    redirect(BERANDA_PERAN[pengguna.profil.peran]);
+  const cocok = pengguna.profil.peranList.some((p) => peran.includes(p));
+  if (!cocok) {
+    redirect(berandaUntukPeran(pengguna.profil.peranList));
   }
   return pengguna;
 }
 
-export const wajibAdmin = () => wajibPeran("admin");
-export const wajibPengajar = () => wajibPeran("ustadz", "admin");
+/** Ummi Rifa dan Admin sama-sama berhak akses penuh — lihat PERAN_AKSES_PENUH. */
+export const wajibAdmin = () => wajibPeran("admin", "ummi");
+export const wajibPengajar = () => wajibPeran("ustadz", "admin", "ummi");

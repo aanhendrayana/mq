@@ -2,9 +2,11 @@
  * Tipe skema database PostgreSQL native (Drizzle ORM).
  */
 
+import type { LampiranPertemuan } from "@/lib/lampiran";
+
 export type Json = string | number | boolean | null | { [k: string]: Json } | Json[];
 
-export type PeranPengguna = "santri" | "ustadz" | "admin";
+export type PeranPengguna = "tamu" | "santri" | "ustadz" | "ummi" | "admin";
 export type TipePelajaran = "video" | "teks" | "audio" | "tugas";
 export type PenyediaVideo = "youtube" | "bunny" | "lokal";
 export type StatusBatch = "draf" | "pendaftaran" | "berjalan" | "selesai";
@@ -18,11 +20,12 @@ export type StatusPesanan =
   | "ditolak"
   | "kadaluarsa";
 
+/** Baris `users` (alias "profiles" untuk kompatibilitas). Peran TIDAK ada di
+ * sini lagi — satu akun bisa berperan ganda, lihat `PenggunaPeran`. */
 export type Profile = {
   id: string;
   nama: string;
   no_hp: string | null;
-  peran: PeranPengguna;
   tgl_lahir: string | null;
   kota: string | null;
   avatar_url: string | null;
@@ -31,33 +34,47 @@ export type Profile = {
   diubah_at: string;
 };
 
+/** Baris tabel `pengguna_peran`: satu tag peran milik satu akun. */
+export type PenggunaPeran = {
+  id: string;
+  pengguna_id: string;
+  peran: PeranPengguna;
+  dibuat_at: string;
+};
+
 export type Program = {
   id: string;
   slug: string;
   nama: string;
+  /** Ringkasan pendek — dipakai di badge/kartu kategori. */
   deskripsi: string | null;
   ikon: string | null;
   urutan: number;
-  dibuat_at: string;
-};
-
-export type Course = {
-  id: string;
-  program_id: string;
-  slug: string;
-  judul: string;
-  subjudul: string | null;
-  jenjang: string | null;
-  deskripsi: string | null;
+  /**
+   * Isian "sales page" & harga: satu program = satu kelas jual, jadi
+   * diisi sekali di sini, bukan per kelas. Beda rombel/seksi (analoginya
+   * kelas 1A/1B/1C SD, materi sama) diatur lewat tabel `batches`.
+   */
+  deskripsi_lengkap: string | null;
   apa_yang_dipelajari: string[];
   untuk_siapa: string[];
-  prasyarat: string | null;
   thumbnail_url: string | null;
+  jenjang: string | null;
+  subjudul: string | null;
+  prasyarat: string | null;
   harga: number;
   harga_coret: number | null;
   durasi_pekan: number | null;
+  dibuat_at: string;
+  diubah_at: string;
+};
+
+/** Kelas: wadah materi (bab & pelajaran) di bawah satu program, 1:1. */
+export type Course = {
+  id: string;
+  program_id: string;
+  judul: string;
   is_published: boolean;
-  urutan: number;
   dibuat_at: string;
   diubah_at: string;
 };
@@ -119,6 +136,32 @@ export type SesiHalaqah = {
   link_meeting: string | null;
   materi: string | null;
   catatan: string | null;
+  lampiran: LampiranPertemuan[];
+  /** Terisi kalau sesi ini salinan template program — lihat TemplatePertemuan. */
+  template_pertemuan_id: string | null;
+  dibuat_at: string;
+};
+
+/** Satu bab dalam rencana pertemuan (RPS) sebuah program — meniru `Modul`. */
+export type TemplateBab = {
+  id: string;
+  program_id: string;
+  judul: string;
+  ringkasan: string | null;
+  urutan: number;
+  dibuat_at: string;
+};
+
+/** Satu baris rencana pertemuan (RPS) milik sebuah bab program. */
+export type TemplatePertemuan = {
+  id: string;
+  bab_id: string;
+  program_id: string;
+  pertemuan_ke: number;
+  judul: string;
+  materi: string | null;
+  durasi_menit: number;
+  lampiran: LampiranPertemuan[];
   dibuat_at: string;
 };
 
@@ -321,7 +364,21 @@ export type Database = {
       >;
       sesi_halaqah: Tabel<
         SesiHalaqah,
-        [Relasi<"sesi_halaqah_batch_id_fkey", "batch_id", "batches">]
+        [
+          Relasi<"sesi_halaqah_batch_id_fkey", "batch_id", "batches">,
+          Relasi<"sesi_halaqah_template_pertemuan_id_fkey", "template_pertemuan_id", "template_pertemuan">,
+        ]
+      >;
+      template_bab: Tabel<
+        TemplateBab,
+        [Relasi<"template_bab_program_id_fkey", "program_id", "programs">]
+      >;
+      template_pertemuan: Tabel<
+        TemplatePertemuan,
+        [
+          Relasi<"template_pertemuan_bab_id_fkey", "bab_id", "template_bab">,
+          Relasi<"template_pertemuan_program_id_fkey", "program_id", "programs">,
+        ]
       >;
       enrollments: Tabel<
         Enrollment,
@@ -393,6 +450,10 @@ export type Database = {
       >;
       faq: Tabel<Faq, [Relasi<"faq_course_id_fkey", "course_id", "courses">]>;
       pengaturan_situs: Tabel<PengaturanSitus>;
+      pengguna_peran: Tabel<
+        PenggunaPeran,
+        [Relasi<"pengguna_peran_pengguna_id_fkey", "pengguna_id", "profiles">]
+      >;
     };
     Views: {
       pengajar_publik: { Row: PengajarPublik; Relationships: [] };

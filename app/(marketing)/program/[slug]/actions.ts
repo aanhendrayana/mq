@@ -9,7 +9,7 @@ export type HasilDaftar = { pesan: string } | undefined;
  * Mendaftar ke sebuah kelas: membuat pesanan lalu mengantar ke halaman tagihan.
  *
  * Harga, nomor invoice, kode unik, dan batas waktu semuanya ditentukan fungsi
- * database `buat_pesanan()`. Yang dikirim dari sini hanya id kelas & angkatan,
+ * database `buat_pesanan()`. Yang dikirim dari sini hanya id kelas & rombel,
  * sehingga nominal tidak bisa dipalsukan dari sisi klien.
  */
 export async function daftarKelasAction(

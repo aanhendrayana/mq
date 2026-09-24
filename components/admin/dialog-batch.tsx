@@ -56,9 +56,9 @@ export function DialogBatch({
       </DialogTrigger>
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{batch ? "Ubah Angkatan" : "Angkatan Baru"}</DialogTitle>
+          <DialogTitle>{batch ? "Ubah Rombel" : "Rombel Baru"}</DialogTitle>
           <DialogDescription>
-            Angkatan yang berstatus &ldquo;pendaftaran&rdquo; atau
+            Rombel yang berstatus &ldquo;pendaftaran&rdquo; atau
             &ldquo;berjalan&rdquo; muncul sebagai pilihan saat santriwati mendaftar.
           </DialogDescription>
         </DialogHeader>
@@ -85,13 +85,13 @@ export function DialogBatch({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="nama">Nama angkatan</Label>
+            <Label htmlFor="nama">Nama rombel</Label>
             <Input
               id="nama"
               name="nama"
               required
               defaultValue={batch?.nama ?? ""}
-              placeholder="Tahsin Dasar — Angkatan 5"
+              placeholder="Tahsin Dasar — Rombel 5"
             />
           </div>
 
@@ -112,7 +112,7 @@ export function DialogBatch({
             </select>
             <p className="text-xs text-muted-foreground">
               Hanya pembimbing yang dipilih di sini yang bisa mengabsen dan
-              menilai santriwati angkatan ini.
+              menilai santriwati rombel ini.
             </p>
           </div>
 

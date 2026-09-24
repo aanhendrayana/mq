@@ -1,6 +1,7 @@
 import { db } from "./index";
 import {
   users,
+  penggunaPeran,
   programs,
   courses,
   modules,
@@ -11,7 +12,6 @@ import {
   pengaturan,
 } from "./schema";
 import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
 
 async function main() {
   console.log("🌱 Memulai seeding data awal ke PostgreSQL mq_ummina...");
@@ -22,38 +22,46 @@ async function main() {
   const ustadzHash = await bcrypt.hash("ustadzah123", salt);
   const santriHash = await bcrypt.hash("santri123", salt);
 
+  const adminId = "00000000-0000-4000-8000-000000000001";
   const ustadzId = "00000000-0000-4000-8000-000000000002";
+  const santriId = "00000000-0000-4000-8000-000000000003";
 
   await db
     .insert(users)
     .values([
       {
-        id: "00000000-0000-4000-8000-000000000001",
-        email: "admin@mqummina.id",
+        id: adminId,
+        email: "admin@nurulmusthofa.id",
         passwordHash: adminHash,
-        nama: "Administrator Ummina",
+        nama: "Administrator Nurul Musthofa",
         noHp: "081234567890",
-        peran: "admin",
-        bio: "Pengelola MQ Ummina Online",
+        bio: "Pengelola Madrasah Quran Nurul Musthofa Perum Safira",
       },
       {
         id: ustadzId,
-        email: "ustadzah@mqummina.id",
+        email: "ustadzah@nurulmusthofa.id",
         passwordHash: ustadzHash,
         nama: "Ustadzah Ma'rifah, S.Q., Hafidzoh",
         noHp: "081234567891",
-        peran: "ustadz",
         bio: "Hafidzoh 30 juz dan Sarjana Ilmu Al-Qur'an. Membimbing tahsin dan tahfidz muslimah, dengan perhatian khusus pada ketepatan makhraj dan sifat huruf.",
       },
       {
-        id: "00000000-0000-4000-8000-000000000003",
-        email: "santri@mqummina.id",
+        id: santriId,
+        email: "santri@nurulmusthofa.id",
         passwordHash: santriHash,
         nama: "Fatimah Az-Zahra",
         noHp: "081234567892",
-        peran: "santri",
         kota: "Bandung",
       },
+    ])
+    .onConflictDoNothing();
+
+  await db
+    .insert(penggunaPeran)
+    .values([
+      { penggunaId: adminId, peran: "admin" },
+      { penggunaId: ustadzId, peran: "ustadz" },
+      { penggunaId: santriId, peran: "santri" },
     ])
     .onConflictDoNothing();
 
@@ -62,57 +70,38 @@ async function main() {
     .insert(programs)
     .values([
       {
+        id: "11111111-0000-4000-8000-000000000005",
+        slug: "pra-tahsin",
+        nama: "Pra Tahsin",
+        deskripsi:
+          "Untuk yang baru mengenal huruf hijaiyah — dasar membaca sebelum masuk ke Tahsin.",
+        ikon: "baby",
+        urutan: 1,
+        deskripsiLengkap:
+          "Dirancang untuk muslimah dewasa yang baru mulai belajar membaca Al-Qur'an. Tempo pelan, kelompok kecil sesama muslimah, tanpa rasa malu.",
+        apaYangDipelajari: [
+          "Mengenal dan menulis huruf hijaiyah",
+          "Membaca huruf bersambung",
+          "Membaca ayat pendek dengan lancar",
+        ],
+        untukSiapa: ["Muslimah dewasa yang belum pernah mengaji", "Mualaf"],
+        subjudul:
+          "Mulai dari nol tanpa sungkan: kelas khusus dewasa yang baru belajar membaca.",
+        jenjang: "Pemula",
+        prasyarat: "Tidak ada. Kelas ini benar-benar dari nol.",
+        harga: 350000,
+        hargaCoret: null,
+        durasiPekan: 16,
+      },
+      {
         id: "11111111-0000-4000-8000-000000000001",
         slug: "tahsin",
         nama: "Tahsin",
         deskripsi:
           "Memperbaiki bacaan Al-Qur'an: makhraj, sifat huruf, dan hukum tajwid, bertahap dari dasar hingga tartil.",
         ikon: "book-open-check",
-        urutan: 1,
-      },
-      {
-        id: "11111111-0000-4000-8000-000000000002",
-        slug: "iqro",
-        nama: "Iqro & Baca Dasar",
-        deskripsi:
-          "Untuk muslimah yang benar-benar memulai dari nol: mengenal huruf hijaiyah sampai lancar membaca.",
-        ikon: "baby",
         urutan: 2,
-      },
-      {
-        id: "11111111-0000-4000-8000-000000000003",
-        slug: "tahfidz",
-        nama: "Tahfidz",
-        deskripsi:
-          "Menghafal Al-Qur'an dengan target terukur dan murojaah terbimbing.",
-        ikon: "brain",
-        urutan: 3,
-      },
-      {
-        id: "11111111-0000-4000-8000-000000000004",
-        slug: "kelas-guru",
-        nama: "Kelas Guru",
-        deskripsi:
-          "Menyiapkan ustadzah pengajar Al-Qur'an: penguasaan materi, metode mengajar, tashih, dan sertifikasi.",
-        ikon: "graduation-cap",
-        urutan: 4,
-      },
-    ])
-    .onConflictDoNothing();
-
-  // 3. KELAS (COURSES)
-  await db
-    .insert(courses)
-    .values([
-      {
-        id: "22222222-0000-4000-8000-000000000001",
-        programId: "11111111-0000-4000-8000-000000000001",
-        slug: "tahsin-dasar",
-        judul: "Tahsin Dasar",
-        subjudul:
-          "Perbaiki fondasi bacaan Anda: makhraj, sifat huruf, dan hukum tajwid pokok.",
-        jenjang: "Dasar",
-        deskripsi:
+        deskripsiLengkap:
           "Kelas ini untuk Anda yang sudah bisa membaca Al-Qur'an tetapi merasa bacaannya belum benar. Selama 12 pekan Anda mempelajari tempat keluarnya huruf, sifat huruf, hukum nun sukun dan mim sukun, serta mad — dengan materi video yang bisa diulang kapan saja, lalu disetorkan langsung kepada ustadzah pembimbing di halaqah dua kali sepekan.",
         apaYangDipelajari: [
           "Melafalkan 29 huruf hijaiyah sesuai makhraj yang benar",
@@ -126,100 +115,39 @@ async function main() {
           "Ibu yang ingin mengajari anaknya mengaji di rumah",
           "Mualaf yang sudah lancar membaca huruf hijaiyah",
         ],
+        subjudul:
+          "Perbaiki fondasi bacaan Anda: makhraj, sifat huruf, dan hukum tajwid pokok.",
+        jenjang: "Dasar",
         prasyarat:
           "Sudah bisa membaca huruf hijaiyah bersambung (minimal lulus Iqro jilid 6).",
         harga: 450000,
         hargaCoret: 650000,
         durasiPekan: 12,
-        isPublished: true,
-        urutan: 1,
       },
       {
-        id: "22222222-0000-4000-8000-000000000002",
-        programId: "11111111-0000-4000-8000-000000000001",
-        slug: "tahsin-menengah",
-        judul: "Tahsin Menengah",
+        id: "11111111-0000-4000-8000-000000000002",
+        slug: "mahir",
+        nama: "Mahir",
+        deskripsi:
+          "Bacaan yang sudah tartil diasah lebih jauh: kelancaran, kefasihan, dan ketepatan hukum bacaan tingkat lanjut.",
+        ikon: "sparkles",
+        urutan: 3,
         subjudul: "Pendalaman tajwid dan latihan tartil pada surat-surat pilihan.",
         jenjang: "Menengah",
-        deskripsi:
-          "Lanjutan dari Tahsin Dasar. Fokus pada mad far'i, gharib, dan latihan tartil dengan irama yang benar.",
-        apaYangDipelajari: [
-          "Menguasai seluruh cabang mad far'i",
-          "Membaca bacaan gharib yang umum",
-          "Melatih tartil dan nafas",
-        ],
-        untukSiapa: [
-          "Alumni Tahsin Dasar",
-          "Muslimah yang lulus tes penempatan menengah",
-        ],
         prasyarat: "Lulus Tahsin Dasar atau lolos tes penempatan.",
         harga: 550000,
         hargaCoret: 750000,
         durasiPekan: 12,
-        isPublished: true,
-        urutan: 2,
       },
       {
-        id: "22222222-0000-4000-8000-000000000003",
-        programId: "11111111-0000-4000-8000-000000000002",
-        slug: "iqro-dewasa",
-        judul: "Iqro untuk Dewasa",
-        subjudul:
-          "Mulai dari nol tanpa sungkan: kelas khusus dewasa yang baru belajar membaca.",
-        jenjang: "Pemula",
+        id: "11111111-0000-4000-8000-000000000003",
+        slug: "idad-muallimah",
+        nama: "I'dad Mu'allimah",
         deskripsi:
-          "Dirancang untuk muslimah dewasa yang baru mulai belajar membaca Al-Qur'an. Tempo pelan, kelompok kecil sesama muslimah, tanpa rasa malu.",
-        apaYangDipelajari: [
-          "Mengenal dan menulis huruf hijaiyah",
-          "Membaca huruf bersambung",
-          "Membaca ayat pendek dengan lancar",
-        ],
-        untukSiapa: [
-          "Muslimah dewasa yang belum pernah mengaji",
-          "Mualaf",
-        ],
-        prasyarat: "Tidak ada. Kelas ini benar-benar dari nol.",
-        harga: 350000,
-        hargaCoret: null,
-        durasiPekan: 16,
-        isPublished: true,
-        urutan: 3,
-      },
-      {
-        id: "22222222-0000-4000-8000-000000000004",
-        programId: "11111111-0000-4000-8000-000000000003",
-        slug: "tahfidz-juz-30",
-        judul: "Tahfidz Juz 30",
-        subjudul:
-          "Hafal juz Amma dengan bacaan yang sudah benar dan murojaah terbimbing.",
-        jenjang: "Juz 30",
-        deskripsi:
-          "Menghafal juz 30 secara bertahap dengan setoran rutin dan jadwal murojaah yang dipantau ustadzah pembimbing.",
-        apaYangDipelajari: [
-          "Menghafal 37 surat juz 30",
-          "Menjaga hafalan lewat murojaah terstruktur",
-          "Memperbaiki bacaan sambil menghafal",
-        ],
-        untukSiapa: [
-          "Muslimah yang bacaannya sudah cukup baik",
-          "Alumni Tahsin Dasar",
-        ],
-        prasyarat: "Bacaan minimal setara lulusan Tahsin Dasar.",
-        harga: 500000,
-        hargaCoret: null,
-        durasiPekan: 24,
-        isPublished: true,
+          "Menyiapkan ustadzah pengajar Al-Qur'an: penguasaan materi, metode mengajar, tashih, dan sertifikasi.",
+        ikon: "graduation-cap",
         urutan: 4,
-      },
-      {
-        id: "22222222-0000-4000-8000-000000000005",
-        programId: "11111111-0000-4000-8000-000000000004",
-        slug: "sertifikasi-guru",
-        judul: "Kelas Guru Al-Qur'an & Sertifikasi",
-        subjudul:
-          "Persiapan menjadi pengajar Al-Qur'an: metode, praktik mengajar, tashih, dan sertifikasi.",
-        jenjang: "Sertifikasi",
-        deskripsi:
+        deskripsiLengkap:
           "Program untuk calon ustadzah: penguasaan materi tahsin, metodologi pengajaran, praktik mengajar, diakhiri tashih dan sertifikasi.",
         apaYangDipelajari: [
           "Metodologi mengajar Al-Qur'an",
@@ -232,12 +160,74 @@ async function main() {
           "Alumni Tahsin Menengah",
           "Calon ustadzah di lembaga atau majelis taklim",
         ],
+        subjudul:
+          "Persiapan menjadi pengajar Al-Qur'an: metode, praktik mengajar, tashih, dan sertifikasi.",
+        jenjang: "Sertifikasi",
         prasyarat: "Lulus Tahsin Menengah dan lolos tashih awal.",
         harga: 1500000,
         hargaCoret: 2000000,
         durasiPekan: 20,
-        isPublished: true,
+      },
+      {
+        id: "11111111-0000-4000-8000-000000000006",
+        slug: "kelas-tahfidzh",
+        nama: "Kelas Tahfidzh",
+        deskripsi:
+          "Menghafal Al-Qur'an dengan target terukur dan murojaah terbimbing.",
+        ikon: "brain",
         urutan: 5,
+        deskripsiLengkap:
+          "Menghafal juz 30 secara bertahap dengan setoran rutin dan jadwal murojaah yang dipantau ustadzah pembimbing.",
+        apaYangDipelajari: [
+          "Menghafal 37 surat juz 30",
+          "Menjaga hafalan lewat murojaah terstruktur",
+          "Memperbaiki bacaan sambil menghafal",
+        ],
+        untukSiapa: ["Muslimah yang bacaannya sudah cukup baik", "Alumni Tahsin Dasar"],
+        subjudul: "Hafal juz Amma dengan bacaan yang sudah benar dan murojaah terbimbing.",
+        jenjang: "Juz 30",
+        prasyarat: "Bacaan minimal setara lulusan Tahsin Dasar.",
+        harga: 500000,
+        hargaCoret: null,
+        durasiPekan: 24,
+      },
+    ])
+    .onConflictDoNothing();
+
+  // 3. KELAS (COURSES) — satu program hanya boleh punya satu kelas; "sesi"
+  // sejenis diwakili lewat rombel (batches), bukan kelas terpisah.
+  await db
+    .insert(courses)
+    .values([
+      {
+        id: "22222222-0000-4000-8000-000000000001",
+        programId: "11111111-0000-4000-8000-000000000001",
+        judul: "Tahsin Dasar",
+        isPublished: true,
+      },
+      {
+        id: "22222222-0000-4000-8000-000000000002",
+        programId: "11111111-0000-4000-8000-000000000002",
+        judul: "Tahsin Menengah",
+        isPublished: true,
+      },
+      {
+        id: "22222222-0000-4000-8000-000000000003",
+        programId: "11111111-0000-4000-8000-000000000005",
+        judul: "Iqro untuk Dewasa",
+        isPublished: true,
+      },
+      {
+        id: "22222222-0000-4000-8000-000000000004",
+        programId: "11111111-0000-4000-8000-000000000006",
+        judul: "Tahfidz Juz 30",
+        isPublished: true,
+      },
+      {
+        id: "22222222-0000-4000-8000-000000000005",
+        programId: "11111111-0000-4000-8000-000000000003",
+        judul: "Kelas Guru Al-Qur'an & Sertifikasi",
+        isPublished: true,
       },
     ])
     .onConflictDoNothing();
@@ -370,7 +360,7 @@ async function main() {
       {
         id: "55555555-0000-4000-8000-000000000001",
         courseId: "22222222-0000-4000-8000-000000000001",
-        nama: "Tahsin Dasar — Angkatan 1",
+        nama: "Tahsin Dasar — Rombel 1",
         ustadzId: ustadzId,
         kuota: 20,
         jadwalRingkas: "Senin & Rabu, 19.30 WIB",
@@ -388,9 +378,9 @@ async function main() {
         kunci: "kontak",
         nilai: {
           whatsapp: "628000000000",
-          email: "info@mqummina.id",
+          email: "info@nurulmusthofa.id",
           alamat: "Bandung, Jawa Barat",
-          instagram: "mqummina",
+          instagram: "nurulmusthofa",
         },
         keterangan: "Kontak yang tampil di footer & tombol WhatsApp",
         isPublik: true,
@@ -400,7 +390,7 @@ async function main() {
         nilai: {
           bank: "Bank Syariah Indonesia (BSI)",
           nomor: "0000000000",
-          atas_nama: "Yayasan Madrasah Quran Ummina",
+          atas_nama: "Madrasah Quran Nurul Musthofa Perum Safira",
         },
         keterangan: "Rekening tujuan transfer manual.",
         isPublik: false,
@@ -460,7 +450,7 @@ async function main() {
         nilai: {
           nama: "Ustadzah Ma'rifah, S.Q., Hafidzoh",
           peran: "Pengasuh & Pengajar Utama",
-          bio: "Hafidzoh 30 juz dan Sarjana Ilmu Al-Qur'an. Membimbing tahsin dan tahfidz muslimah, dengan perhatian khusus pada ketepatan makhraj dan sifat huruf. Beliau memimpin langsung penyusunan kurikulum dan tashih kelulusan di Madrasah Qur'an Ummina.",
+          bio: "Hafidzoh 30 juz dan Sarjana Ilmu Al-Qur'an. Membimbing tahsin dan tahfidz muslimah, dengan perhatian khusus pada ketepatan makhraj dan sifat huruf. Beliau memimpin langsung penyusunan kurikulum dan tashih kelulusan di Madrasah Quran Nurul Musthofa Perum Safira.",
         },
         keterangan: "Profil pengasuh madrasah yang tampil di halaman Tentang",
         isPublik: true,
@@ -489,7 +479,7 @@ async function main() {
       {
         pertanyaan: "Berapa lama akses materinya?",
         jawaban:
-          "Materi video dapat diakses selamanya selama program masih berjalan. Yang terbatas waktu hanya halaqah setoran, karena mengikuti jadwal angkatan.",
+          "Materi video dapat diakses selamanya selama program masih berjalan. Yang terbatas waktu hanya halaqah setoran, karena mengikuti jadwal rombel.",
         urutan: 3,
         isPublished: true,
       },

@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { courses, enrollments, modules, lessons, progresPelajaran } from "@/lib/db/schema";
+import { courses, programs, enrollments, modules, lessons, progresPelajaran } from "@/lib/db/schema";
 import { eq, and, ne, asc } from "drizzle-orm";
 import type { Course, Enrollment, Lesson, Modul, StatusEnrollment } from "@/lib/database.types";
 
@@ -10,7 +10,7 @@ export type BabBelajar = Pick<Modul, "id" | "judul" | "ringkasan" | "urutan"> & 
 };
 
 export type IsiKelas = {
-  kelas: Course;
+  kelas: Course & { jenjang: string | null; subjudul: string | null };
   enrollment: Enrollment;
   bab: BabBelajar[];
   /** Daftar datar berurutan, dipakai untuk navigasi sebelumnya/berikutnya. */
@@ -21,16 +21,19 @@ export type IsiKelas = {
 };
 
 export async function muatIsiKelas(
-  slug: string,
+  slugProgram: string,
   santriId: string,
 ): Promise<IsiKelas | null> {
-  const [courseRow] = await db
-    .select()
+  const [row] = await db
+    .select({ course: courses, program: programs })
     .from(courses)
-    .where(eq(courses.slug, slug))
+    .innerJoin(programs, eq(courses.programId, programs.id))
+    .where(eq(programs.slug, slugProgram))
     .limit(1);
 
-  if (!courseRow) return null;
+  if (!row) return null;
+  const courseRow = row.course;
+  const programRow = row.program;
 
   const [enrollRow] = await db
     .select()
@@ -113,25 +116,15 @@ export async function muatIsiKelas(
   const total = urut.length;
   const selesai = urut.filter((l) => l.selesai).length;
 
-  const kelasFormatted: Course = {
+  const kelasFormatted: IsiKelas["kelas"] = {
     id: courseRow.id,
     program_id: courseRow.programId,
-    slug: courseRow.slug,
     judul: courseRow.judul,
-    subjudul: courseRow.subjudul,
-    jenjang: courseRow.jenjang,
-    deskripsi: courseRow.deskripsi,
-    apa_yang_dipelajari: courseRow.apaYangDipelajari as string[],
-    untuk_siapa: courseRow.untukSiapa as string[],
-    prasyarat: courseRow.prasyarat,
-    thumbnail_url: courseRow.thumbnailUrl,
-    harga: courseRow.harga,
-    harga_coret: courseRow.hargaCoret,
-    durasi_pekan: courseRow.durasiPekan,
     is_published: courseRow.isPublished,
-    urutan: courseRow.urutan,
     dibuat_at: courseRow.dibuatAt.toISOString(),
     diubah_at: courseRow.diubahAt.toISOString(),
+    jenjang: programRow.jenjang,
+    subjudul: programRow.subjudul,
   };
 
   const enrollmentFormatted: Enrollment = {

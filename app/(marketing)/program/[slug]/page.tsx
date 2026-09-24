@@ -22,20 +22,46 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { PanelDaftar, type AngkatanTersedia } from "@/components/marketing/panel-daftar";
+import { PanelDaftar, type RombelTersedia } from "@/components/marketing/panel-daftar";
 import { kurikulumPublik } from "@/lib/kelas";
 import { buatKlienServer } from "@/lib/db/server";
 import { durasi, inisial, jamTayang, rupiah } from "@/lib/format";
 
 async function ambilKelas(slug: string) {
   const db = await buatKlienServer();
-  const { data } = await db
-    .from("courses")
-    .select("*, programs(slug, nama)")
+  const { data: program } = await db
+    .from("programs")
+    .select("*")
     .eq("slug", slug)
+    .maybeSingle();
+  if (!program) return null;
+
+  const { data: course } = await db
+    .from("courses")
+    .select("*")
+    .eq("program_id", program.id)
     .eq("is_published", true)
     .maybeSingle();
-  return data;
+  if (!course) return null;
+
+  return {
+    ...course,
+    slug: program.slug,
+    jenjang: program.jenjang,
+    subjudul: program.subjudul,
+    prasyarat: program.prasyarat,
+    harga: program.harga,
+    harga_coret: program.harga_coret,
+    durasi_pekan: program.durasi_pekan,
+    programs: {
+      slug: program.slug,
+      nama: program.nama,
+      deskripsi_lengkap: program.deskripsi_lengkap,
+      apa_yang_dipelajari: program.apa_yang_dipelajari as string[],
+      untuk_siapa: program.untuk_siapa as string[],
+      thumbnail_url: program.thumbnail_url,
+    },
+  };
 }
 
 export async function generateMetadata({
@@ -46,7 +72,7 @@ export async function generateMetadata({
   if (!kelas) return { title: "Kelas tidak ditemukan" };
   return {
     title: kelas.judul,
-    description: kelas.subjudul ?? kelas.deskripsi?.slice(0, 160) ?? undefined,
+    description: kelas.subjudul ?? kelas.programs?.deskripsi_lengkap?.slice(0, 160) ?? undefined,
   };
 }
 
@@ -60,7 +86,7 @@ export default async function DetailKelasPage({ params }: PageProps<"/program/[s
     data: { user },
   } = await db.auth.getUser();
 
-  const [bab, { data: angkatanMentah }, { data: faq }, { data: testimoni }] =
+  const [bab, { data: rombelMentah }, { data: faq }, { data: testimoni }] =
     await Promise.all([
       kurikulumPublik(kelas.id),
       db
@@ -85,21 +111,21 @@ export default async function DetailKelasPage({ params }: PageProps<"/program/[s
 
   // Sisa kursi dihitung dari pendaftaran yang sudah aktif (bukan dari pesanan
   // yang belum dibayar), agar kursi tidak "terkunci" oleh pesanan yang hangus.
-  const idAngkatan = (angkatanMentah ?? []).map((a) => a.id);
-  const { data: terisi } = idAngkatan.length
+  const idRombel = (rombelMentah ?? []).map((a) => a.id);
+  const { data: terisi } = idRombel.length
     ? await db
         .from("enrollments")
         .select("batch_id")
-        .in("batch_id", idAngkatan)
+        .in("batch_id", idRombel)
         .neq("status", "berhenti")
     : { data: [] };
 
-  const angkatan: AngkatanTersedia[] = (angkatanMentah ?? []).map((a) => ({
+  const rombel: RombelTersedia[] = (rombelMentah ?? []).map((a) => ({
     ...a,
     sisa: Math.max(0, a.kuota - (terisi ?? []).filter((e) => e.batch_id === a.id).length),
   }));
 
-  const idUstadz = [...new Set((angkatanMentah ?? []).map((a) => a.ustadz_id).filter(Boolean))];
+  const idUstadz = [...new Set((rombelMentah ?? []).map((a) => a.ustadz_id).filter(Boolean))];
   const { data: pengajar } = idUstadz.length
     ? await db.from("pengajar_publik").select("*").in("id", idUstadz as string[])
     : { data: [] };
@@ -131,8 +157,8 @@ export default async function DetailKelasPage({ params }: PageProps<"/program/[s
 
   const semuaPelajaran = bab.flatMap((b) => b.pelajaran);
   const totalDetik = semuaPelajaran.reduce((t, p) => t + p.durasi_detik, 0);
-  const dipelajari = kelas.apa_yang_dipelajari ?? [];
-  const untukSiapa = kelas.untuk_siapa ?? [];
+  const dipelajari: string[] = kelas.programs?.apa_yang_dipelajari ?? [];
+  const untukSiapa: string[] = kelas.programs?.untuk_siapa ?? [];
 
   return (
     <>
@@ -205,7 +231,7 @@ export default async function DetailKelasPage({ params }: PageProps<"/program/[s
                   )}
                 </div>
 
-                <PanelDaftar kelas={kelas} angkatan={angkatan} keadaan={keadaan} />
+                <PanelDaftar kelas={kelas} rombel={rombel} keadaan={keadaan} />
 
                 <Separator />
 
@@ -247,11 +273,11 @@ export default async function DetailKelasPage({ params }: PageProps<"/program/[s
           )}
 
           {/* ------------------------------------------------------- Deskripsi */}
-          {kelas.deskripsi && (
+          {kelas.programs?.deskripsi_lengkap && (
             <section>
               <h2 className="font-heading text-2xl font-bold">Tentang kelas ini</h2>
               <p className="mt-4 leading-relaxed text-pretty whitespace-pre-line text-muted-foreground">
-                {kelas.deskripsi}
+                {kelas.programs.deskripsi_lengkap}
               </p>
             </section>
           )}
@@ -317,16 +343,16 @@ export default async function DetailKelasPage({ params }: PageProps<"/program/[s
             </section>
           )}
 
-          {/* -------------------------------------------------------- Angkatan */}
-          {angkatan.length > 0 && (
+          {/* -------------------------------------------------------- Rombel */}
+          {rombel.length > 0 && (
             <section>
               <h2 className="font-heading text-2xl font-bold">Jadwal halaqah</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Setoran bacaan dilakukan berkelompok sesuai angkatan, dengan
+                Setoran bacaan dilakukan berkelompok sesuai rombel, dengan
                 ustadzah pembimbing yang tetap sepanjang program.
               </p>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                {angkatan.map((a) => (
+                {rombel.map((a) => (
                   <Card key={a.id} className="gap-2 p-5">
                     <div className="flex items-start justify-between gap-3">
                       <h3 className="font-heading font-semibold">{a.nama}</h3>

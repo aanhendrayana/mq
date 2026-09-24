@@ -13,7 +13,7 @@ import { buatKlienServer } from "@/lib/db/server";
 export const metadata: Metadata = {
   title: "Hubungi Kami",
   description:
-    "Hubungi Madrasah Qur'an Ummina untuk tes penempatan gratis, pertanyaan seputar kelas, atau kendala pembayaran.",
+    "Hubungi Madrasah Quran Nurul Musthofa Perum Safira untuk tes penempatan gratis, pertanyaan seputar kelas, atau kendala pembayaran.",
 };
 
 export default async function KontakPage() {
@@ -27,7 +27,7 @@ export default async function KontakPage() {
     .order("urutan");
 
   const pesanAwal = encodeURIComponent(
-    "Assalamu'alaikum, saya ingin bertanya tentang kelas di MQ Ummina.",
+    "Assalamu'alaikum, saya ingin bertanya tentang kelas di Madrasah Quran Nurul Musthofa Perum Safira.",
   );
 
   return (
@@ -35,7 +35,7 @@ export default async function KontakPage() {
       <div className="text-center">
         <h1 className="font-heading text-4xl font-bold">Hubungi Kami</h1>
         <p className="mt-4 leading-relaxed text-pretty text-muted-foreground">
-          Ingin tes penempatan gratis, menanyakan jadwal angkatan berikutnya,
+          Ingin tes penempatan gratis, menanyakan jadwal rombel berikutnya,
           atau ada kendala pembayaran? Silakan hubungi kami — jalur tercepat
           lewat WhatsApp.
         </p>

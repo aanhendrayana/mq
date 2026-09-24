@@ -17,7 +17,7 @@ export async function GET(
   const relativePath = segments.join("/");
   // Hanya admin atau santri pemilik berkas (path diawali id santri) yang boleh membuka
   const isOwner = relativePath.startsWith(pengguna.id);
-  const isAdmin = pengguna.profil.peran === "admin";
+  const isAdmin = pengguna.profil.peranList.includes("admin") || pengguna.profil.peranList.includes("ummi");
 
   if (!isOwner && !isAdmin) {
     return new NextResponse("Forbidden", { status: 403 });

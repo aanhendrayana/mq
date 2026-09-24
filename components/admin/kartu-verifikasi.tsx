@@ -47,7 +47,7 @@ export type PesananVerifikasi = {
   nama_santri: string;
   no_hp: string | null;
   judul_kelas: string;
-  nama_angkatan: string | null;
+  nama_rombel: string | null;
 };
 
 export function KartuVerifikasi({ pesanan }: { pesanan: PesananVerifikasi }) {
@@ -91,8 +91,8 @@ export function KartuVerifikasi({ pesanan }: { pesanan: PesananVerifikasi }) {
         <div className="min-w-0">
           <h3 className="font-heading font-semibold">{pesanan.nama_santri}</h3>
           <p className="text-sm text-muted-foreground">{pesanan.judul_kelas}</p>
-          {pesanan.nama_angkatan && (
-            <p className="text-xs text-muted-foreground">{pesanan.nama_angkatan}</p>
+          {pesanan.nama_rombel && (
+            <p className="text-xs text-muted-foreground">{pesanan.nama_rombel}</p>
           )}
         </div>
         <StatusPesananBadge status={pesanan.status} />

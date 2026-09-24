@@ -33,8 +33,8 @@ export default async function AdminBerandaPage() {
       .select("id", { count: "exact", head: true })
       .eq("status", "menunggu_verifikasi"),
     db
-      .from("profiles")
-      .select("id", { count: "exact", head: true })
+      .from("pengguna_peran")
+      .select("pengguna_id", { count: "exact", head: true })
       .eq("peran", "santri"),
     db
       .from("courses")

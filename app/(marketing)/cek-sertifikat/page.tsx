@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 export const metadata: Metadata = {
   title: "Cek Keaslian Sertifikat",
   description:
-    "Periksa keaslian sertifikat kelulusan Madrasah Qur'an Ummina dengan memasukkan kode verifikasi yang tertera pada sertifikat.",
+    "Periksa keaslian sertifikat kelulusan Madrasah Quran Nurul Musthofa Perum Safira dengan memasukkan kode verifikasi yang tertera pada sertifikat.",
 };
 
 async function cariSertifikat(formData: FormData) {

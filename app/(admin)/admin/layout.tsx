@@ -32,7 +32,8 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           label: "Akademik",
           item: [
             { href: "/admin/kelas", label: "Kelas & Materi", ikon: "book-open" },
-            { href: "/admin/batch", label: "Angkatan", ikon: "users-bulat" },
+            { href: "/admin/program", label: "Template Program", ikon: "daftar-cek" },
+            { href: "/admin/batch", label: "Rombel", ikon: "users-bulat" },
             { href: "/admin/sertifikat", label: "Sertifikat", ikon: "award" },
           ],
         },

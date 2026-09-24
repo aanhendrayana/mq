@@ -11,20 +11,30 @@ import {
 } from "@/components/ui/table";
 import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { wajibPengajar } from "@/lib/auth";
+import { idRombelBimbingan } from "@/lib/pengajar";
 import { buatKlienServer } from "@/lib/db/server";
 import { nomorWa } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Santriwati Bimbingan" };
 
 export default async function SantriBimbinganPage() {
-  await wajibPengajar();
+  const pengguna = await wajibPengajar();
   const db = await buatKlienServer();
 
-  // RLS sudah membatasi ke angkatan yang dibimbing pengguna ini.
-  const { data: enroll } = await db
+  // Admin/Ummi Rifa lihat semua; ustadzah biasa hanya santriwati di
+  // rombel yang admin tugaskan padanya.
+  const idBimbingan = await idRombelBimbingan(pengguna);
+  let qEnroll = db
     .from("enrollments")
     .select("id, santri_id, status, profiles(nama, no_hp, kota), courses(judul), batches(nama)")
     .neq("status", "berhenti");
+  if (idBimbingan) {
+    qEnroll = qEnroll.in(
+      "batch_id",
+      idBimbingan.length ? idBimbingan : ["00000000-0000-0000-0000-000000000000"],
+    );
+  }
+  const { data: enroll } = await qEnroll;
 
   const idSantri = [...new Set((enroll ?? []).map((e) => e.santri_id))];
 
@@ -39,14 +49,14 @@ export default async function SantriBimbinganPage() {
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <JudulHalaman
         judul="Santriwati Bimbingan"
-        keterangan="Seluruh santriwati dari angkatan yang Anda bimbing, beserta rata-rata nilai setorannya."
+        keterangan="Seluruh santriwati dari rombel yang Anda bimbing, beserta rata-rata nilai setorannya."
       />
 
       {!enroll || enroll.length === 0 ? (
         <KeadaanKosong
           ikon={GraduationCap}
           judul="Belum ada santriwati"
-          keterangan="Santriwati akan muncul di sini setelah admin menempatkan mereka di angkatan Anda."
+          keterangan="Santriwati akan muncul di sini setelah admin menempatkan mereka di rombel Anda."
         />
       ) : (
         <Card className="p-0">
@@ -56,7 +66,7 @@ export default async function SantriBimbinganPage() {
                 <TableRow>
                   <TableHead>Nama</TableHead>
                   <TableHead>Kelas</TableHead>
-                  <TableHead>Angkatan</TableHead>
+                  <TableHead>Rombel</TableHead>
                   <TableHead className="text-right">Setoran</TableHead>
                   <TableHead className="text-right">Rata-rata</TableHead>
                   <TableHead>WhatsApp</TableHead>

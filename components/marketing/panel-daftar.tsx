@@ -11,14 +11,14 @@ import { cn } from "@/lib/utils";
 import { daftarKelasAction, type HasilDaftar } from "@/app/(marketing)/program/[slug]/actions";
 import type { Batch, Course } from "@/lib/database.types";
 
-export type AngkatanTersedia = Pick<
+export type RombelTersedia = Pick<
   Batch,
   "id" | "nama" | "tgl_mulai" | "jadwal_ringkas" | "kuota" | "status"
 > & { sisa: number };
 
 type Props = {
-  kelas: Course;
-  angkatan: AngkatanTersedia[];
+  kelas: Course & { slug: string; harga: number };
+  rombel: RombelTersedia[];
   /** Status pengguna terhadap kelas ini, dihitung di server. */
   keadaan:
     | { jenis: "tamu" }
@@ -27,8 +27,8 @@ type Props = {
     | { jenis: "belum" };
 };
 
-export function PanelDaftar({ kelas, angkatan, keadaan }: Props) {
-  const tersedia = angkatan.filter((a) => a.sisa > 0);
+export function PanelDaftar({ kelas, rombel, keadaan }: Props) {
+  const tersedia = rombel.filter((a) => a.sisa > 0);
   const [dipilih, setDipilih] = useState<string>(tersedia[0]?.id ?? "");
   const [hasil, kirim, sedangKirim] = useActionState<HasilDaftar, FormData>(
     daftarKelasAction,
@@ -72,7 +72,7 @@ export function PanelDaftar({ kelas, angkatan, keadaan }: Props) {
 
       {tersedia.length > 0 ? (
         <fieldset className="space-y-2">
-          <Label className="text-sm font-medium">Pilih angkatan</Label>
+          <Label className="text-sm font-medium">Pilih rombel</Label>
           <div className="space-y-2">
             {tersedia.map((a) => (
               <button
@@ -109,7 +109,7 @@ export function PanelDaftar({ kelas, angkatan, keadaan }: Props) {
         <Alert>
           <AlertCircle className="size-4" />
           <AlertDescription>
-            Belum ada angkatan yang dibuka. Anda tetap bisa mendaftar untuk
+            Belum ada rombel yang dibuka. Anda tetap bisa mendaftar untuk
             mengakses materi video; jadwal halaqah akan diinfokan admin.
           </AlertDescription>
         </Alert>

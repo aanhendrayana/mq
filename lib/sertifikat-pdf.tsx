@@ -179,7 +179,8 @@ function Lembar({ data, qr }: { data: DataSertifikat; qr: string }) {
       <Page size="A4" orientation="landscape" style={g.halaman}>
         <View style={g.bingkaiLuar}>
           <View style={g.bingkaiDalam}>
-            <Text style={g.lembaga}>MADRASAH QUR&apos;AN UMMINA</Text>
+            <Text style={g.lembaga}>MADRASAH QURAN NURUL MUSTHOFA</Text>
+            <Text style={g.subLembaga}>PERUM SAFIRA</Text>
             <Text style={g.subLembaga}>PROGRAM PEMBELAJARAN AL-QUR&apos;AN DARING</Text>
 
             <View style={g.garis} />

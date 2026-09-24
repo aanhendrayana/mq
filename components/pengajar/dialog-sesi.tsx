@@ -16,8 +16,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { EditorLampiran } from "@/components/dasbor/editor-lampiran";
 import { simpanSesiAction, type HasilAksi } from "@/app/(pengajar)/pengajar/batch/[id]/actions";
 import type { SesiHalaqah } from "@/lib/database.types";
+import type { LampiranPertemuan } from "@/lib/lampiran";
 
 /** Pecah timestamptz menjadi tanggal & jam Jakarta untuk mengisi form. */
 function pecahWaktuJakarta(iso: string): { tanggal: string; jam: string } {
@@ -40,12 +42,16 @@ export function DialogSesi({
   batchId,
   pertemuanBerikut,
   sesi,
+  /** true bila sesi ini salinan template & pengguna bukan admin/Ummi Rifa —
+   * judul, materi, dan nomor urut terkunci, cuma jadwal & link yang boleh diubah. */
+  terkunci = false,
   pemicu,
   varian,
 }: {
   batchId: string;
   pertemuanBerikut: number;
   sesi?: SesiHalaqah;
+  terkunci?: boolean;
   pemicu: React.ReactNode;
   varian?: "outline";
 }) {
@@ -66,6 +72,7 @@ export function DialogSesi({
   );
 
   const awal = sesi ? pecahWaktuJakarta(sesi.mulai_at) : { tanggal: "", jam: "19:30" };
+  const [lampiran, setLampiran] = useState<LampiranPertemuan[]>(sesi?.lampiran ?? []);
 
   return (
     <Dialog open={buka} onOpenChange={setBuka}>
@@ -76,7 +83,9 @@ export function DialogSesi({
         <DialogHeader>
           <DialogTitle>{sesi ? "Ubah Pertemuan" : "Tambah Pertemuan"}</DialogTitle>
           <DialogDescription>
-            Waktu yang Anda isi dibaca sebagai Waktu Indonesia Barat (WIB).
+            {terkunci
+              ? "Judul & materi mengikuti template program, tidak bisa diubah dari sini. Anda hanya mengatur jadwal dan link vicon."
+              : "Waktu yang Anda isi dibaca sebagai Waktu Indonesia Barat (WIB)."}
           </DialogDescription>
         </DialogHeader>
 
@@ -93,6 +102,8 @@ export function DialogSesi({
                 type="number"
                 min={1}
                 required
+                readOnly={terkunci}
+                className={terkunci ? "bg-muted text-muted-foreground" : undefined}
                 defaultValue={sesi?.pertemuan_ke ?? pertemuanBerikut}
               />
             </div>
@@ -102,6 +113,8 @@ export function DialogSesi({
                 id="judul"
                 name="judul"
                 required
+                readOnly={terkunci}
+                className={terkunci ? "bg-muted text-muted-foreground" : undefined}
                 defaultValue={sesi?.judul ?? ""}
                 placeholder="Setoran makhraj huruf halqi"
               />
@@ -150,10 +163,15 @@ export function DialogSesi({
             <Input
               id="materi"
               name="materi"
+              readOnly={terkunci}
+              className={terkunci ? "bg-muted text-muted-foreground" : undefined}
               defaultValue={sesi?.materi ?? ""}
               placeholder="QS. An-Naba 1–20"
             />
           </div>
+
+          <input type="hidden" name="lampiran_json" value={JSON.stringify(lampiran)} />
+          <EditorLampiran lampiran={lampiran} setLampiran={setLampiran} disabled={terkunci} />
 
           {hasil?.pesan && (
             <Alert variant="destructive">

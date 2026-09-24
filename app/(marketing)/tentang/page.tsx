@@ -9,7 +9,7 @@ import { inisial } from "@/lib/format";
 export const metadata: Metadata = {
   title: "Tentang Kami",
   description:
-    "Madrasah Qur'an daring khusus muslimah. Materi video terstruktur dipadukan halaqah setoran bersama ustadzah pembimbing.",
+    "Madrasah Quran Nurul Musthofa Perum Safira adalah madrasah daring khusus muslimah dengan materi terstruktur dan halaqah bersama ustadzah pembimbing.",
 };
 
 const NILAI = [
@@ -21,7 +21,7 @@ const NILAI = [
   {
     ikon: Users,
     judul: "Setiap santriwati didengarkan",
-    isi: "Kesalahan makhraj tidak bisa ditemukan lewat video. Karena itu setiap kelas punya halaqah setoran, dan setiap angkatan dibatasi jumlahnya.",
+    isi: "Kesalahan makhraj tidak bisa ditemukan lewat video. Karena itu setiap kelas punya halaqah setoran, dan setiap rombel dibatasi jumlahnya.",
   },
   {
     ikon: HeartHandshake,
@@ -55,10 +55,10 @@ export default async function TentangPage() {
             خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ
           </p>
           <h1 className="font-heading text-4xl leading-tight font-bold text-balance">
-            Madrasah Qur&apos;an Ummina
+            Madrasah Quran Nurul Musthofa Perum Safira
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-pretty text-muted-foreground">
-            Madrasah Qur&apos;an daring <strong className="font-semibold text-foreground">khusus
+            Madrasah Quran daring <strong className="font-semibold text-foreground">khusus
             muslimah</strong>. Kami membimbing dari yang belum mengenal huruf
             hingga yang bersiap menjadi ustadzah pengajar.
           </p>
@@ -83,7 +83,7 @@ export default async function TentangPage() {
             membetulkan.
           </p>
           <p>
-            Karena itu setiap kelas di Madrasah Qur&apos;an Ummina menggabungkan
+            Karena itu setiap kelas di Madrasah Quran Nurul Musthofa Perum Safira menggabungkan
             dua hal: materi video yang bisa Anda ulang sesuka hati di rumah, dan
             halaqah setoran terjadwal tempat bacaan Anda benar-benar dikoreksi
             oleh ustadzah.

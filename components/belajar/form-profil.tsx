@@ -50,7 +50,7 @@ export function FormProfil({ profil, tujuan }: { profil: Profile; tujuan?: strin
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="kota">Kota</Label>
+          <Label htmlFor="kota">Tempat Lahir</Label>
           <Input id="kota" name="kota" defaultValue={profil.kota ?? ""} placeholder="Bandung" />
         </div>
 

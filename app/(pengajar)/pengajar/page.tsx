@@ -5,11 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { wajibPengajar } from "@/lib/auth";
+import { idRombelBimbingan } from "@/lib/pengajar";
 import { buatKlienServer } from "@/lib/db/server";
 import { jarakWaktu, tanggalJam } from "@/lib/format";
 import { waktuPermintaan } from "@/lib/waktu";
 
-export const metadata: Metadata = { title: "Angkatan Saya" };
+export const metadata: Metadata = { title: "Rombel Saya" };
 
 const WARNA_STATUS = {
   draf: "bg-muted text-muted-foreground",
@@ -19,17 +20,22 @@ const WARNA_STATUS = {
 } as const;
 
 export default async function PengajarPage() {
-  await wajibPengajar();
+  const pengguna = await wajibPengajar();
   const db = await buatKlienServer();
 
-  // Admin ikut memakai panel ini; kalau tidak ada filter, admin melihat semua
-  // angkatan, sedangkan ustadzah hanya angkatannya sendiri (dijamin RLS).
-  const { data: angkatan } = await db
-    .from("batches")
-    .select("*, courses(judul, jenjang)")
-    .order("tgl_mulai", { ascending: false });
+  // Admin/Ummi Rifa ikut memakai panel ini dan melihat semua rombel;
+  // ustadzah biasa hanya rombel yang admin tugaskan padanya.
+  const idBimbingan = await idRombelBimbingan(pengguna);
+  let qRombel = db.from("batches").select("*, courses(judul, jenjang)").order("tgl_mulai", { ascending: false });
+  if (idBimbingan) {
+    qRombel = qRombel.in(
+      "id",
+      idBimbingan.length ? idBimbingan : ["00000000-0000-0000-0000-000000000000"],
+    );
+  }
+  const { data: rombel } = await qRombel;
 
-  const idBatch = (angkatan ?? []).map((b) => b.id);
+  const idBatch = (rombel ?? []).map((b) => b.id);
   const sekarang = await waktuPermintaan();
 
   const [{ data: enroll }, { data: sesi }] = idBatch.length
@@ -47,19 +53,19 @@ export default async function PengajarPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <JudulHalaman
-        judul="Angkatan Saya"
+        judul="Rombel Saya"
         keterangan="Kelompok halaqah yang Anda bimbing beserta pertemuan terdekatnya."
       />
 
-      {!angkatan || angkatan.length === 0 ? (
+      {!rombel || rombel.length === 0 ? (
         <KeadaanKosong
           ikon={Users}
-          judul="Belum ada angkatan"
-          keterangan="Anda belum ditugaskan membimbing angkatan mana pun. Admin akan menugaskan Anda melalui panel administrasi."
+          judul="Belum ada rombel"
+          keterangan="Anda belum ditugaskan membimbing rombel mana pun. Admin akan menugaskan Anda melalui panel administrasi."
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {angkatan.map((b) => {
+          {rombel.map((b) => {
             const jumlah = (enroll ?? []).filter(
               (e) => e.batch_id === b.id && e.status !== "berhenti",
             ).length;
@@ -106,7 +112,7 @@ export default async function PengajarPage() {
                 )}
 
                 <TautanTombol href={`/pengajar/batch/${b.id}`} size="sm" className="w-full">
-                  Kelola Angkatan
+                  Kelola Rombel
                 </TautanTombol>
               </Card>
             );

@@ -39,28 +39,8 @@ function idYouTube(masukan: string): string {
 const skemaKelas = z.object({
   program_id: z.uuid("Pilih program."),
   judul: z.string().trim().min(3, "Judul kelas minimal 3 huruf."),
-  slug: z.string().trim().optional(),
-  subjudul: z.string().trim().max(200).optional(),
-  jenjang: z.string().trim().max(60).optional(),
-  deskripsi: z.string().trim().max(5000).optional(),
-  prasyarat: z.string().trim().max(1000).optional(),
-  apa_yang_dipelajari: z.string().optional(),
-  untuk_siapa: z.string().optional(),
-  thumbnail_url: z.union([z.url(), z.literal("")]).optional(),
-  harga: z.coerce.number().int().min(0),
-  harga_coret: z.union([z.coerce.number().int().min(0), z.literal("")]).optional(),
-  durasi_pekan: z.union([z.coerce.number().int().min(1).max(200), z.literal("")]).optional(),
-  urutan: z.coerce.number().int().min(0).default(0),
   is_published: z.coerce.boolean().optional(),
 });
-
-/** Textarea satu-baris-satu-poin -> array JSON. */
-function keDaftar(teks: string | undefined): string[] {
-  return (teks ?? "")
-    .split("\n")
-    .map((b) => b.trim())
-    .filter(Boolean);
-}
 
 export async function simpanKelasAction(
   _sebelumnya: HasilAdmin,
@@ -76,29 +56,22 @@ export async function simpanKelasAction(
   const isi = {
     program_id: d.program_id,
     judul: d.judul,
-    slug: keSlug(d.slug || d.judul),
-    subjudul: d.subjudul || null,
-    jenjang: d.jenjang || null,
-    deskripsi: d.deskripsi || null,
-    prasyarat: d.prasyarat || null,
-    apa_yang_dipelajari: keDaftar(d.apa_yang_dipelajari),
-    untuk_siapa: keDaftar(d.untuk_siapa),
-    thumbnail_url: d.thumbnail_url || null,
-    harga: d.harga,
-    harga_coret: d.harga_coret === "" || d.harga_coret === undefined ? null : d.harga_coret,
-    durasi_pekan: d.durasi_pekan === "" || d.durasi_pekan === undefined ? null : d.durasi_pekan,
-    urutan: d.urutan,
     is_published: Boolean(d.is_published),
   };
 
   const db = await buatKlienServer();
+  const { data: program } = await db
+    .from("programs")
+    .select("slug")
+    .eq("id", d.program_id)
+    .maybeSingle();
 
   if (id) {
     const { error } = await db.from("courses").update(isi).eq("id", id);
     if (error) return { pesan: galatRamah(error.message, error.code) };
     revalidatePath("/admin/kelas");
     revalidatePath(`/admin/kelas/${id}`);
-    revalidatePath(`/program/${isi.slug}`);
+    if (program) revalidatePath(`/program/${program.slug}`);
     return { sukses: "Kelas tersimpan." };
   }
 
@@ -111,7 +84,7 @@ export async function simpanKelasAction(
 
 function galatRamah(pesan: string, kode?: string): string {
   if (kode === "23505") {
-    return "Slug ini sudah dipakai kelas lain. Ubah judul atau isi slug secara manual.";
+    return "Program ini sudah punya kelas lain. Satu program hanya bisa punya satu kelas.";
   }
   return pesan;
 }

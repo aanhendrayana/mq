@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { buatKlienServer } from "@/lib/db/server";
+import { db as drizzleDb } from "@/lib/db";
+import { courses, programs } from "@/lib/db/schema";
 import { buatPdfSertifikat } from "@/lib/sertifikat-pdf";
 import { ambilPengasuh } from "@/lib/pengaturan";
 
@@ -36,6 +39,14 @@ export async function GET(
     return new NextResponse("Sertifikat tidak ditemukan.", { status: 404 });
   }
 
+  // Jenjang kini disimpan di level program, bukan kelas — shim `courses(...)`
+  // di atas tidak mendukung embed berjenjang, jadi diambil terpisah lewat drizzle.
+  const [jenjangRow] = await drizzleDb
+    .select({ jenjang: programs.jenjang })
+    .from(courses)
+    .innerJoin(programs, eq(courses.programId, programs.id))
+    .where(eq(courses.id, data.course_id));
+
   // Blok tanda tangan menyebut pengasuh madrasah yang sedang menjabat, dibaca
   // dari pengaturan situs agar bisa diperbarui admin tanpa deploy ulang.
   const pengasuh = await ambilPengasuh();
@@ -44,14 +55,14 @@ export async function GET(
     nomor: data.nomor,
     namaSantri: data.profiles?.nama ?? "—",
     judulKelas: data.courses?.judul ?? "—",
-    jenjang: data.courses?.jenjang ?? null,
+    jenjang: jenjangRow?.jenjang ?? null,
     predikat: data.predikat,
     nilaiRata: data.nilai_rata === null ? null : Number(data.nilai_rata),
     tglTerbit: data.tgl_terbit,
     tokenVerifikasi: data.token_verifikasi,
     penandatangan: {
       nama: pengasuh?.nama ?? "Pimpinan Madrasah",
-      peran: pengasuh?.peran ?? "Madrasah Qur'an Ummina",
+      peran: pengasuh?.peran ?? "Madrasah Quran Nurul Musthofa Perum Safira",
     },
   });
 

@@ -4,8 +4,9 @@ import { eq } from "drizzle-orm";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import { users, penggunaPeran } from "@/lib/db/schema";
 import { buatTokenSesi, NAMA_COOKIE_SESI } from "@/lib/auth/session";
+import type { Peran } from "@/lib/konstanta";
 import {
   asalAman,
   COOKIE_GOOGLE_ASAL,
@@ -100,29 +101,46 @@ export async function GET(request: NextRequest) {
     const avatarUrl = typeof payload.picture === "string" ? payload.picture : null;
     if (!email || !nama) return responsGagal(request, "google_gagal");
 
-    let user = await db.query.users.findFirst({ where: eq(users.email, email) });
-    const penggunaBaru = !user;
+    const existing = await db.query.users.findFirst({
+      where: eq(users.email, email),
+      with: { peranList: true },
+    });
+    const penggunaBaru = !existing;
 
-    if (!user) {
+    let userId: string;
+    let userEmail: string;
+    let peranList: Peran[];
+
+    if (!existing) {
       // Akun Google tidak punya kata sandi. Diisi hash acak yang tidak pernah
       // diberitahukan ke siapa pun, supaya kolomnya tetap terisi dan tidak ada
       // sandi kosong yang bisa ditebak.
       const passwordHash = await bcrypt.hash(randomBytes(48).toString("base64url"), 10);
-      [user] = await db
+      const [baris] = await db
         .insert(users)
-        .values({ nama, email, avatarUrl, passwordHash, peran: "santri" })
+        .values({ nama, email, avatarUrl, passwordHash })
         .returning();
-    } else if (!user.avatarUrl && avatarUrl) {
-      // Akun lama yang baru pertama kali memakai Google: pinjam fotonya saja.
-      // Nama tidak ditimpa karena nama di sini yang tercetak di sertifikat.
-      [user] = await db
-        .update(users)
-        .set({ avatarUrl, diubahAt: new Date() })
-        .where(eq(users.id, user.id))
-        .returning();
+      // Pendaftar baru mulai sebagai "tamu" — sama seperti daftar lewat email.
+      await db.insert(penggunaPeran).values({ penggunaId: baris.id, peran: "tamu" });
+      userId = baris.id;
+      userEmail = baris.email;
+      peranList = ["tamu"];
+    } else {
+      if (!existing.avatarUrl && avatarUrl) {
+        // Akun lama yang baru pertama kali memakai Google: pinjam fotonya
+        // saja. Nama tidak ditimpa karena nama di sini yang tercetak di
+        // sertifikat.
+        await db
+          .update(users)
+          .set({ avatarUrl, diubahAt: new Date() })
+          .where(eq(users.id, existing.id));
+      }
+      userId = existing.id;
+      userEmail = existing.email;
+      peranList = existing.peranList.map((p) => p.peran as Peran);
     }
 
-    const sesi = await buatTokenSesi({ id: user.id, email: user.email, peran: user.peran });
+    const sesi = await buatTokenSesi({ id: userId, email: userEmail, peranList });
     const tujuan = tujuanAman(request.cookies.get(COOKIE_GOOGLE_TUJUAN)?.value);
 
     // Google tidak memberi nomor WhatsApp, padahal admin memakainya untuk

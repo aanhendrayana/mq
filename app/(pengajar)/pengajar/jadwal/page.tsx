@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { JudulHalaman, KeadaanKosong } from "@/components/dasbor/judul-halaman";
 import { wajibPengajar } from "@/lib/auth";
+import { idRombelBimbingan } from "@/lib/pengajar";
 import { buatKlienServer } from "@/lib/db/server";
 import { jarakWaktu, tanggalJam } from "@/lib/format";
 import { waktuPermintaan } from "@/lib/waktu";
@@ -12,13 +13,18 @@ import { waktuPermintaan } from "@/lib/waktu";
 export const metadata: Metadata = { title: "Jadwal Mengajar" };
 
 export default async function JadwalPengajarPage() {
-  await wajibPengajar();
+  const pengguna = await wajibPengajar();
   const db = await buatKlienServer();
 
-  const { data: sesi } = await db
-    .from("sesi_halaqah")
-    .select("*, batches(id, nama, courses(judul))")
-    .order("mulai_at");
+  const idBimbingan = await idRombelBimbingan(pengguna);
+  let qSesi = db.from("sesi_halaqah").select("*, batches(id, nama, courses(judul))").order("mulai_at");
+  if (idBimbingan) {
+    qSesi = qSesi.in(
+      "batch_id",
+      idBimbingan.length ? idBimbingan : ["00000000-0000-0000-0000-000000000000"],
+    );
+  }
+  const { data: sesi } = await qSesi;
 
   const sekarang = (await waktuPermintaan()).getTime();
   const mendatang = (sesi ?? []).filter((s) => new Date(s.mulai_at).getTime() >= sekarang);
@@ -31,7 +37,7 @@ export default async function JadwalPengajarPage() {
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <JudulHalaman
         judul="Jadwal Mengajar"
-        keterangan="Seluruh pertemuan dari angkatan yang Anda bimbing."
+        keterangan="Seluruh pertemuan dari rombel yang Anda bimbing."
       />
 
       <h2 className="font-heading mb-3 text-lg font-semibold">Akan datang</h2>
@@ -39,7 +45,7 @@ export default async function JadwalPengajarPage() {
         <KeadaanKosong
           ikon={CalendarDays}
           judul="Tidak ada pertemuan terjadwal"
-          keterangan="Tambahkan pertemuan dari halaman angkatan agar santriwati melihat jadwalnya."
+          keterangan="Tambahkan pertemuan dari halaman rombel agar santriwati melihat jadwalnya."
         />
       ) : (
         <div className="mb-10 space-y-2">

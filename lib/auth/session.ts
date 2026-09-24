@@ -11,7 +11,8 @@ const DURASI_DETIK = 60 * 60 * 24 * 7; // 7 hari
 export type PayloadSesi = {
   id: string;
   email: string;
-  peran: "santri" | "ustadz" | "admin";
+  /** Bisa lebih dari satu — lihat komentar di lib/konstanta.ts (PERAN). */
+  peranList: ("tamu" | "santri" | "ustadz" | "ummi" | "admin")[];
 };
 
 /**

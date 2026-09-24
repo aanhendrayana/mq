@@ -6,8 +6,9 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import { users, penggunaPeran } from "@/lib/db/schema";
 import { buatTokenSesi, pasangCookieSesi, hapusCookieSesi } from "@/lib/auth/session";
+import type { Peran } from "@/lib/konstanta";
 
 export type HasilForm = { pesan?: string; sukses?: string } | undefined;
 
@@ -41,6 +42,7 @@ export async function masukAction(
   const email = hasil.data.email.toLowerCase().trim();
   const user = await db.query.users.findFirst({
     where: eq(users.email, email),
+    with: { peranList: true },
   });
 
   if (!user) {
@@ -55,7 +57,7 @@ export async function masukAction(
   const token = await buatTokenSesi({
     id: user.id,
     email: user.email,
-    peran: user.peran,
+    peranList: user.peranList.map((p) => p.peran as Peran),
   });
 
   await pasangCookieSesi(token);
@@ -96,14 +98,18 @@ export async function daftarAction(
       email,
       noHp: hasil.data.no_hp,
       passwordHash,
-      peran: "santri",
     })
     .returning();
+
+  // Pendaftar baru mulai sebagai "tamu" — belum ikut kelas apa pun. Begitu
+  // pembayaran kelas pertamanya disetujui admin, tag ini diganti "santri"
+  // (lihat setujui_pesanan di lib/db/klien.ts).
+  await db.insert(penggunaPeran).values({ penggunaId: newUser.id, peran: "tamu" });
 
   const token = await buatTokenSesi({
     id: newUser.id,
     email: newUser.email,
-    peran: newUser.peran,
+    peranList: ["tamu"],
   });
 
   await pasangCookieSesi(token);

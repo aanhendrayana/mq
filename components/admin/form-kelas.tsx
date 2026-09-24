@@ -1,12 +1,12 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { simpanKelasAction, type HasilAdmin } from "@/app/(admin)/admin/kelas/actions";
@@ -58,143 +58,15 @@ export function FormKelas({
               </option>
             ))}
           </select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="slug">Slug URL</Label>
-          <Input
-            id="slug"
-            name="slug"
-            defaultValue={kelas?.slug ?? ""}
-            placeholder="dikosongkan = dibuat dari judul"
-          />
           <p className="text-xs text-muted-foreground">
-            Menjadi alamat halaman: /program/<em>slug</em>. Hindari mengubahnya
-            setelah kelas dipromosikan — tautan lama akan mati.
+            Slug, jenjang, subjudul, prasyarat, harga, dan durasi kelas ini
+            otomatis mengikuti program yang dipilih — diatur sekali di{" "}
+            <Link href="/admin/program" className="text-primary hover:underline">
+              Template Program
+            </Link>
+            .
           </p>
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="jenjang">Jenjang</Label>
-          <Input
-            id="jenjang"
-            name="jenjang"
-            defaultValue={kelas?.jenjang ?? ""}
-            placeholder="Dasar / Menengah / Jilid 3"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="subjudul">Subjudul</Label>
-        <Input
-          id="subjudul"
-          name="subjudul"
-          defaultValue={kelas?.subjudul ?? ""}
-          placeholder="Satu kalimat penjelas yang muncul di kartu katalog"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="deskripsi">Deskripsi lengkap</Label>
-        <Textarea
-          id="deskripsi"
-          name="deskripsi"
-          rows={5}
-          defaultValue={kelas?.deskripsi ?? ""}
-        />
-      </div>
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="apa_yang_dipelajari">Yang akan dikuasai</Label>
-          <Textarea
-            id="apa_yang_dipelajari"
-            name="apa_yang_dipelajari"
-            rows={5}
-            defaultValue={(kelas?.apa_yang_dipelajari ?? []).join("\n")}
-            placeholder="Satu poin per baris"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="untuk_siapa">Cocok untuk</Label>
-          <Textarea
-            id="untuk_siapa"
-            name="untuk_siapa"
-            rows={5}
-            defaultValue={(kelas?.untuk_siapa ?? []).join("\n")}
-            placeholder="Satu poin per baris"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="prasyarat">Prasyarat</Label>
-        <Textarea
-          id="prasyarat"
-          name="prasyarat"
-          rows={2}
-          defaultValue={kelas?.prasyarat ?? ""}
-        />
-      </div>
-
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="space-y-2">
-          <Label htmlFor="harga">Harga (Rp)</Label>
-          <Input
-            id="harga"
-            name="harga"
-            type="number"
-            min={0}
-            required
-            defaultValue={kelas?.harga ?? 0}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="harga_coret">Harga coret (Rp)</Label>
-          <Input
-            id="harga_coret"
-            name="harga_coret"
-            type="number"
-            min={0}
-            defaultValue={kelas?.harga_coret ?? ""}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="durasi_pekan">Durasi (pekan)</Label>
-          <Input
-            id="durasi_pekan"
-            name="durasi_pekan"
-            type="number"
-            min={1}
-            defaultValue={kelas?.durasi_pekan ?? ""}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="urutan">Urutan tampil</Label>
-          <Input
-            id="urutan"
-            name="urutan"
-            type="number"
-            min={0}
-            defaultValue={kelas?.urutan ?? 0}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="thumbnail_url">URL gambar sampul</Label>
-        <Input
-          id="thumbnail_url"
-          name="thumbnail_url"
-          type="url"
-          defaultValue={kelas?.thumbnail_url ?? ""}
-          placeholder="https://..."
-        />
-        <p className="text-xs text-muted-foreground">
-          Masukkan URL gambar/thumbnail kelas (misal dari CDN atau hosting berkas).
-        </p>
       </div>
 
       <label className="flex items-center gap-3 rounded-lg border p-4">

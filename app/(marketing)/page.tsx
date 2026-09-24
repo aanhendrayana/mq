@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   CheckCircle2,
@@ -11,7 +12,6 @@ import {
 } from "lucide-react";
 import { TautanTombol } from "@/components/ui/tautan-tombol";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Accordion,
   AccordionContent,
@@ -85,66 +85,78 @@ export default async function BerandaPage() {
     .filter(([, , nilai]) => Boolean(nilai));
 
   return (
-    <>
-      {/* ---------------------------------------------------------------- Hero */}
-      <section className="pola-islami relative overflow-hidden border-b">
-        <div className="absolute inset-0 bg-linear-to-b from-secondary/60 via-background to-background" />
-        <div className="relative mx-auto max-w-6xl px-4 py-20 sm:py-28">
-          <div className="mx-auto max-w-3xl text-center">
-            <Badge variant="secondary" className="mb-6 gap-1.5 px-3 py-1.5">
-              <Sparkles className="size-3.5 text-emas" />
-              {hero.catatan}
-            </Badge>
-
-            <p className="teks-arab mb-6 text-2xl text-primary/70 sm:text-3xl">
-              وَرَتِّلِ ٱلْقُرْءَانَ تَرْتِيلًا
+    <div className="landing-page">
+      <section className="landing-hero relative isolate overflow-hidden border-b">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-6 px-5 pt-12 pb-10 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:gap-12 lg:pt-16 lg:pb-14">
+          <div className="relative z-10">
+            <p className="landing-eyebrow mb-6 flex items-center gap-2">
+              <span className="h-px w-7 bg-current" aria-hidden="true" />
+              MADRASAH QURAN NURUL MUSTHOFA · PERUM SAFIRA
             </p>
-
-            <h1 className="font-heading text-4xl leading-[1.15] font-bold text-balance sm:text-5xl">
+            <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/70 px-3.5 py-2 text-xs font-medium text-primary">
+              <Sparkles className="size-3.5" aria-hidden="true" />
+              {hero.catatan}
+            </span>
+            <h1 className="font-heading max-w-xl text-[2.6rem] leading-[1.2] font-medium tracking-tight text-[#173f36] sm:text-5xl lg:text-[3.45rem]">
               {hero.judul}
             </h1>
-
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-pretty text-muted-foreground">
+            <p className="mt-6 max-w-lg text-base leading-8 text-[#5c6c63] sm:text-lg">
               {hero.subjudul}
             </p>
-
-            <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-              <TautanTombol href="/program" size="lg" className="h-12 px-7 text-base">
-                {hero.cta}
-                <ArrowRight className="size-4" />
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <TautanTombol href="/program" size="lg" className="h-12 gap-3 rounded-full px-7 shadow-lg shadow-primary/10">
+                {hero.cta}<ArrowRight className="size-4" />
               </TautanTombol>
-              <TautanTombol
-                href="/tentang"
-                size="lg"
-                variant="outline"
-                className="h-12 px-7 text-base"
-              >
+              <TautanTombol href="/tentang" size="lg" variant="outline" className="h-12 rounded-full border-primary/20 bg-transparent px-6 text-primary">
                 Kenali Madrasah Kami
               </TautanTombol>
             </div>
+            <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3 text-xs text-[#5c6c63]">
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="size-4 text-primary" />Khusus muslimah</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="size-4 text-primary" />Belajar dari rumah</span>
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="size-4 text-primary" />Dibimbing ustadzah</span>
+            </div>
           </div>
 
-          {angkaTampil.length > 0 && (
-            /* Flex, bukan grid 4 kolom: admin boleh mengosongkan salah satu
-               angka untuk menyembunyikannya, dan grid berkolom tetap akan
-               menyisakan sel kosong yang membuat barisnya timpang. */
-            <dl className="mx-auto mt-16 flex max-w-3xl flex-wrap justify-center gap-x-14 gap-y-8">
-              {angkaTampil.map(([kunci, label, nilai]) => (
-                <div key={kunci} className="min-w-32 text-center">
-                  <dt className="font-heading text-3xl font-bold text-primary">{nilai}</dt>
-                  <dd className="mt-1 text-sm text-muted-foreground">{label}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
+          <div className="landing-illustration relative mx-auto w-full max-w-[520px]">
+            <Image
+              src="/images/mq-nurul-musthofa-transparan.png"
+              alt="Logo Madrasah Quran Nurul Musthofa Perum Safira dengan ilustrasi akhwat sedang mengaji"
+              width={1254}
+              height={1254}
+              sizes="(max-width: 640px) 92vw, (max-width: 1024px) 520px, 45vw"
+              preload
+              unoptimized
+              className="h-auto w-full object-contain"
+            />
+          </div>
+        </div>
+        <div className="relative border-t border-[#d8cba9]/45 bg-white/40 px-5 py-7 text-center">
+          <p lang="ar" className="teks-arab text-2xl text-[#235347] sm:text-3xl">وَرَتِّلِ ٱلْقُرْءَانَ تَرْتِيلًا</p>
+          <p className="mt-1 text-xs tracking-wide text-[#6d7568]">“Dan bacalah Al-Qur’an itu dengan perlahan-lahan.” <span className="whitespace-nowrap">— QS. Al-Muzzammil: 4</span></p>
         </div>
       </section>
+
+      {angkaTampil.length > 0 && (
+        <section aria-label="Madrasah dalam angka" className="border-b bg-[#173f36] text-white">
+          <dl className="mx-auto flex max-w-6xl flex-wrap justify-center gap-x-20 gap-y-8 px-5 py-9">
+            {angkaTampil.map(([kunci, label, nilai]) => (
+              <div key={kunci} className="min-w-32 text-center">
+                <dt className="font-heading text-3xl font-medium text-[#e5ce92]">{nilai}</dt>
+                <dd className="mt-2 text-xs text-white/75">{label}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
 
       {/* ----------------------------------------------------------- Keunggulan */}
       <section className="mx-auto max-w-6xl px-4 py-20">
         <div className="mx-auto max-w-2xl text-center">
+          <p className="landing-eyebrow mb-4">MENGAPA BELAJAR BERSAMA KAMI</p>
           <h2 className="font-heading text-3xl font-bold text-balance sm:text-4xl">
-            Kursus video saja tidak cukup untuk memperbaiki bacaan
+            Bimbingan yang dekat,
+            langkah belajar yang terarah
           </h2>
           <p className="mt-4 leading-relaxed text-pretty text-muted-foreground">
             Kesalahan makhraj hampir selalu luput kalau tidak ada yang
@@ -153,10 +165,10 @@ export default async function BerandaPage() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-5 sm:grid-cols-2">
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {KEUNGGULAN.map((k) => (
-            <Card key={k.judul} className="gap-3 p-6">
-              <div className="grid size-11 place-items-center rounded-lg bg-primary/10 text-primary">
+            <Card key={k.judul} className="landing-feature gap-4 rounded-2xl border-primary/10 p-6 shadow-none">
+              <div className="grid size-11 place-items-center rounded-full bg-primary/10 text-primary">
                 <k.ikon className="size-5" />
               </div>
               <h3 className="font-heading text-lg font-semibold">{k.judul}</h3>
@@ -172,7 +184,7 @@ export default async function BerandaPage() {
           <div className="mx-auto max-w-6xl px-4">
             <h2 className="font-heading text-3xl font-bold">Pilih titik mulai Anda</h2>
             <p className="mt-3 max-w-2xl text-muted-foreground">
-              Empat jalur belajar, dari yang belum mengenal huruf hingga yang
+              Pilihan jalur belajar, dari yang belum mengenal huruf hingga yang
               bersiap menjadi pengajar.
             </p>
 
@@ -181,7 +193,7 @@ export default async function BerandaPage() {
                 <Link
                   key={p.id}
                   href={`/program?kategori=${p.slug}`}
-                  className="group rounded-xl border bg-card p-6 transition-colors hover:border-primary/40 hover:bg-card"
+                  className="group rounded-2xl border border-primary/15 bg-card p-7 transition-colors hover:border-primary/50 hover:bg-secondary/30"
                 >
                   <h3 className="font-heading text-lg font-semibold group-hover:text-primary">
                     {p.nama}
@@ -207,7 +219,7 @@ export default async function BerandaPage() {
             <div>
               <h2 className="font-heading text-3xl font-bold">Kelas yang sedang dibuka</h2>
               <p className="mt-3 text-muted-foreground">
-                Pendaftaran angkatan baru dibuka setiap awal bulan.
+                Pendaftaran rombel baru dibuka setiap awal bulan.
               </p>
             </div>
             <TautanTombol href="/program" variant="outline">
@@ -230,7 +242,7 @@ export default async function BerandaPage() {
           <div className="mx-auto max-w-6xl px-4 py-20">
             <h2 className="font-heading text-3xl font-bold">Bagaimana belajarnya?</h2>
             <p className="mt-3 max-w-2xl text-primary-foreground/80">
-              Lima langkah, dari mendaftar sampai menerima sertifikat.
+              Langkah demi langkah, dari mendaftar sampai menerima sertifikat.
             </p>
 
             <ol className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
@@ -299,21 +311,21 @@ export default async function BerandaPage() {
 
       {/* ------------------------------------------------------------------ CTA */}
       <section className="mx-auto max-w-6xl px-4 py-20">
-        <Card className="pola-islami items-center gap-5 p-10 text-center sm:p-16">
+        <Card className="landing-cta relative overflow-hidden items-center gap-5 rounded-[2rem] border-[#d8cba9] p-8 text-center shadow-none sm:p-16">
           <CheckCircle2 className="size-10 text-primary" />
           <h2 className="font-heading max-w-2xl text-3xl font-bold text-balance sm:text-4xl">
             Tidak ada kata terlambat untuk memperbaiki bacaan
           </h2>
           <p className="max-w-xl leading-relaxed text-pretty text-muted-foreground">
-            Banyak santriwati kami baru mulai di usia 40, 50, bahkan 60 tahun. Yang
-            dibutuhkan hanya kemauan dan pembimbing yang sabar.
+            Mulai dari kemampuan Anda hari ini. Luangkan waktu untuk belajar,
+            bersama pembimbing yang mendampingi setiap langkah perbaikan bacaan.
           </p>
-          <TautanTombol href="/program" size="lg" className="mt-2 h-12 px-8 text-base">
+          <TautanTombol href="/program" size="lg" className="mt-2 h-12 rounded-full px-8 text-base">
             Mulai Belajar Sekarang
             <ArrowRight className="size-4" />
           </TautanTombol>
         </Card>
       </section>
-    </>
+    </div>
   );
 }

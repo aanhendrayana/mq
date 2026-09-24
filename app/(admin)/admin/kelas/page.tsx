@@ -15,10 +15,12 @@ export default async function AdminKelasPage() {
   await wajibAdmin();
   const db = await buatKlienServer();
 
-  const { data: kelas } = await db
+  const { data: kelasMentah } = await db
     .from("courses")
-    .select("*, programs(nama)")
-    .order("urutan");
+    .select("*, programs(nama, jenjang, harga, urutan)");
+  const kelas = (kelasMentah ?? []).slice().sort(
+    (a, b) => (a.programs?.urutan ?? 0) - (b.programs?.urutan ?? 0),
+  );
 
   const { data: pelajaran } = await db.from("lessons").select("course_id");
   const { data: enroll } = await db.from("enrollments").select("course_id");
@@ -56,15 +58,15 @@ export default async function AdminKelasPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-medium">{k.judul}</p>
-                    {k.jenjang && (
+                    {k.programs?.jenjang && (
                       <Badge variant="outline" className="text-xs font-normal">
-                        {k.jenjang}
+                        {k.programs.jenjang}
                       </Badge>
                     )}
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {k.programs?.nama} · {jumlahPelajaran} pelajaran · {jumlahSantri} santriwati ·{" "}
-                    {rupiah(k.harga)}
+                    {rupiah(k.programs?.harga ?? 0)}
                   </p>
                 </div>
 

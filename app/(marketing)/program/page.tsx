@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "Program & Kelas",
   description:
-    "Semua kelas Madrasah Qur'an Ummina: tahsin berjenjang, iqro untuk pemula, tahfidz, dan kelas guru bersertifikasi.",
+    "Semua kelas Madrasah Quran Nurul Musthofa Perum Safira: tahsin berjenjang, iqro untuk pemula, tahfidz, dan kelas guru bersertifikasi.",
 };
 
 export default async function KatalogPage({ searchParams }: PageProps<"/program">) {
@@ -72,7 +72,7 @@ export default async function KatalogPage({ searchParams }: PageProps<"/program"
             <SearchX className="size-10 text-muted-foreground" />
             <p className="font-medium">Belum ada kelas pada program ini</p>
             <p className="max-w-sm text-sm text-muted-foreground">
-              Angkatan berikutnya sedang disiapkan. Silakan lihat program lain
+              Rombel berikutnya sedang disiapkan. Silakan lihat program lain
               atau hubungi kami untuk diberi tahu saat dibuka.
             </p>
             <Link href="/program" className="mt-2 text-sm font-medium text-primary hover:underline">
